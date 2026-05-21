@@ -406,13 +406,10 @@
         <button class="btn btn-secondary" onclick="goBackToAdminCountries()">Назад к странам</button>
     </div>
 
-
     <script>
-        // Данные твоего проекта Supabase в Ирландии
+        // Инициализация Supabase подключения (СТРОГО ОДИН РАЗ)
         const SUPABASE_URL = "https://ufpfkvuujlrcgpiquaep.supabase.co"; 
         const SUPABASE_KEY = "sb_publishable_uTITwoPrMgGoZReqJ35x1g_ejOU4eXF"; 
-
-        // Инициализируем клиент Supabase ОДИН раз
         const supabase = window['@supabase/supabase-js'].createClient(SUPABASE_URL, SUPABASE_KEY);
 
         const ADMIN_IDS = [5737961034]; 
@@ -429,7 +426,7 @@
 
         let rawCloudData = [];
 
-        // Элементы интерфейса
+        // Переменные интерфейса
         const homeView = document.getElementById('home-view');
         const authView = document.getElementById('auth-view');
         const vpnProtocolView = document.getElementById('vpn-protocol-view');
@@ -445,7 +442,7 @@
         const profileMenu = document.getElementById('profile-menu');
         const adminDropdownLink = document.getElementById('admin-dropdown-link');
 
-        // Скачивание базы без зависания интерфейса
+        // Получение данных из базы
         async function fetchDatabase() {
             try {
                 const { data, error } = await supabase.from('vpn_data').select('*');
@@ -455,7 +452,7 @@
                     rawCloudData = data || [];
                 }
             } catch (err) {
-                console.error("Ошибка сети с сервером в Ирландии:", err);
+                console.error("Ошибка сети с сервером Supabase:", err);
             }
         }
 
@@ -512,7 +509,7 @@
             document.getElementById('summary-country').innerText = (countryRow.flag || '🌐') + " " + selectedCountryName;
             
             const keyDisplay = document.getElementById('user-vpn-key');
-            keyDisplay.innerText = "Генерация ключа через сервер в Ирландии...";
+            keyDisplay.innerText = "Генерация ключа...";
             orderSuccessView.classList.remove('hidden');
 
             try {
@@ -541,7 +538,7 @@
             }
         }
 
-        /* --- УПРАВЛЕНИЕ В АДМИНКЕ --- */
+        /* --- ПАНЕЛЬ АДМИНИСТРАТОРА --- */
 
         async function openAdminProtocolSelect() {
             hideAllViews();
@@ -592,7 +589,7 @@
                 .insert([{ protocol: adminSelectedProtocol, country_name: name, flag: flag, keys: [] }]);
 
             if (error) {
-                alert("Ошибка: " + error.message + ". Проверь, отключен ли RLS!");
+                alert("Ошибка добавления: " + error.message);
             } else {
                 nameInput.value = "";
                 flagInput.value = "";
@@ -781,8 +778,8 @@
             }
         }
 
-        // Запуск первого скачивания базы данных
-        fetchDatabase().catch(err => console.error("Облако Supabase недоступно:", err));
+        // Запуск первой выгрузки базы
+        fetchDatabase().catch(err => console.error("База данных недоступна:", err));
     </script>
 </body>
 </html>
