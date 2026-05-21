@@ -8,42 +8,50 @@
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
         body { background: #0f172a; color: white; font-family: sans-serif; display: flex; justify-content: center; padding: 20px; }
-        .card { background: #1e293b; padding: 20px; border-radius: 12px; width: 100%; max-width: 400px; text-align: center; }
-        .btn { display: block; width: 100%; padding: 15px; margin: 10px 0; background: #0284c7; border: none; border-radius: 8px; color: white; font-weight: bold; cursor: pointer; }
+        .card { background: #1e293b; padding: 20px; border-radius: 12px; width: 100%; max-width: 400px; }
+        .btn { display: block; width: 100%; padding: 15px; margin: 10px 0; background: #0284c7; border: none; border-radius: 8px; color: white; font-weight: bold; cursor: pointer; text-align: center; }
     </style>
 </head>
 <body>
 
     <div class="card">
         <h1>NetVault</h1>
-        <p>Приватные VPN-серверы</p>
-        <button class="btn" id="btn-router">Покупка роутера</button>
-        <button class="btn" id="btn-vpn">Покупка VPN</button>
+        <button class="btn" id="btn-vpn">Купить VPN</button>
+        <div id="list-container"></div>
     </div>
 
     <script>
-        // --- 1. ЕДИНСТВЕННОЕ ОБЪЯВЛЕНИЕ SUPABASE ---
+        // 1. ИНИЦИАЛИЗАЦИЯ (СТРОГО ОДИН РАЗ)
         const supabase = window['@supabase/supabase-js'].createClient(
             "https://ufpfkvuujlrcgpiquaep.supabase.co", 
             "sb_publishable_uTITwoPrMgGoZReqJ35x1g_ejOU4eXF"
         );
 
-        // --- 2. ФУНКЦИИ (определяем их до того, как используем) ---
-        function handleAction(action) {
-            console.log("Выбрано действие:", action);
-            alert("Вы выбрали: " + action);
-        }
+        const tg = window.Telegram.WebApp;
+        tg.ready();
 
-        // --- 3. НАЗНАЧЕНИЕ КНОПОК ---
-        // Используем DOMContentLoaded, чтобы кнопки гарантированно существовали
-        document.addEventListener('DOMContentLoaded', () => {
-            document.getElementById('btn-router').addEventListener('click', () => handleAction('Router'));
-            document.getElementById('btn-vpn').addEventListener('click', () => handleAction('VPN'));
+        // 2. КНОПКА VPN (Работает с базой)
+        document.getElementById('btn-vpn').addEventListener('click', async () => {
+            const container = document.getElementById('list-container');
+            container.innerHTML = "Загрузка стран...";
+
+            const { data, error } = await supabase.from('vpn_data').select('*');
             
-            // Инициализация Telegram Mini App
-            if (window.Telegram && window.Telegram.WebApp) {
-                window.Telegram.WebApp.ready();
+            if (error) {
+                container.innerHTML = "Ошибка: " + error.message;
+                return;
             }
+
+            container.innerHTML = "";
+            data.forEach(item => {
+                const btn = document.createElement('button');
+                btn.className = 'btn';
+                btn.innerText = item.country_name;
+                btn.addEventListener('click', () => {
+                    alert("Ключ для " + item.country_name + ": " + (item.keys ? item.keys[0] : "нет ключей"));
+                });
+                container.appendChild(btn);
+            });
         });
     </script>
 </body>
