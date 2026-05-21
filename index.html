@@ -2,68 +2,31 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>NetVault</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
-    <style>
-        body { background: #0f172a; color: #fff; font-family: sans-serif; display: flex; justify-content: center; padding: 20px; }
-        .card { background: #1e293b; padding: 20px; border-radius: 12px; width: 100%; max-width: 400px; }
-        /* Кнопки теперь имеют высокий приоритет */
-        .btn { 
-            display: block; width: 100%; padding: 15px; margin: 10px 0; 
-            background: #0284c7; border: none; border-radius: 8px; color: white; 
-            font-weight: bold; cursor: pointer; text-align: center;
-            position: relative; z-index: 1000; pointer-events: auto;
-        }
-        .hidden { display: none !important; }
-    </style>
 </head>
 <body>
 
-<div class="card" id="main-view">
-    <h1>NetVault</h1>
-    <button class="btn" id="vpn-btn">Купить VPN</button>
-    <button class="btn" id="router-btn">Купить Роутер</button>
-</div>
+    <button id="btn-vpn">Купить VPN</button>
 
-<div class="card hidden" id="vpn-view">
-    <h1>VPN Выбран</h1>
-    <button class="btn" id="back-btn">Назад</button>
-</div>
+    <script>
+        // СТРОГО ОДИН РАЗ создаем клиент
+        const supabase = window['@supabase/supabase-js'].createClient(
+            "https://ufpfkvuujlrcgpiquaep.supabase.co", 
+            "sb_publishable_uTITwoPrMgGoZReqJ35x1g_ejOU4eXF"
+        );
 
-<script>
-    // 1. Инициализация (ждем полной загрузки DOM)
-    document.addEventListener('DOMContentLoaded', () => {
+        // Функция теперь гарантированно будет найдена
+        function handleAction(type) {
+            console.log("Действие:", type);
+            alert("Вы нажали: " + type);
+        }
+
+        // Назначаем обработчики ПОСЛЕ определения функции
+        document.getElementById('btn-vpn').addEventListener('click', () => handleAction('VPN'));
         
-        // Инициализация Telegram
-        const tg = window.Telegram.WebApp;
-        tg.ready();
-        tg.expand();
-
-        // 2. Поиск элементов
-        const mainView = document.getElementById('main-view');
-        const vpnView = document.getElementById('vpn-view');
-        const vpnBtn = document.getElementById('vpn-btn');
-        const backBtn = document.getElementById('back-btn');
-
-        // 3. Прямые обработчики (без onclick в HTML)
-        vpnBtn.addEventListener('click', (e) => {
-            e.preventDefault();
-            console.log("Клик по VPN сработал");
-            mainView.classList.add('hidden');
-            vpnView.classList.remove('hidden');
-        });
-
-        backBtn.addEventListener('click', (e) => {
-            e.preventDefault();
-            mainView.classList.remove('hidden');
-            vpnView.classList.add('hidden');
-        });
-
-        console.log("Скрипт инициализирован, кнопки готовы.");
-    });
-</script>
-
+        console.log("Приложение успешно запущено без ошибок");
+    </script>
 </body>
 </html>
