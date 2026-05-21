@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Jerk Store | Сетевое оборудование</title>
+    <title>Jerk Store | Сетевое оборудование и VPN</title>
     <style>
         * {
             box-sizing: border-box;
@@ -24,55 +24,185 @@
             background: #1e293b;
             padding: 40px;
             border-radius: 16px;
-            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.3), 0 8px 10px -6px rgba(0, 0, 0, 0.3);
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.3);
             text-align: center;
-            max-width: 500px;
+            max-width: 400px;
             width: 100%;
             border: 1px solid #334155;
         }
+        
+        /* Стили для логотипа и заголовков */
         .logo-icon {
-            font-size: 64px;
-            margin-bottom: 20px;
+            font-size: 50px;
+            margin-bottom: 15px;
             display: inline-block;
-            animation: pulse 2s infinite;
         }
         h1 {
-            font-size: 2rem;
+            font-size: 1.8rem;
             color: #38bdf8;
-            margin-bottom: 10px;
-            letter-spacing: 0.5px;
+            margin-bottom: 25px;
         }
-        p {
-            color: #94a3b8;
-            font-size: 1.1rem;
-            line-height: 1.6;
-            margin-bottom: 30px;
-        }
-        .status-badge {
-            display: inline-block;
-            background: rgba(56, 189, 248, 0.1);
-            color: #38bdf8;
-            padding: 8px 16px;
-            border-radius: 20px;
+        
+        /* Стили для кнопок */
+        .btn {
+            display: block;
+            width: 100%;
+            padding: 12px;
+            margin-bottom: 15px;
+            background-color: #0284c7;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 1rem;
             font-weight: 600;
-            font-size: 0.9rem;
-            border: 1px solid rgba(56, 189, 248, 0.2);
+            cursor: pointer;
+            transition: background-color 0.2s;
         }
-        @keyframes pulse {
-            0% { transform: scale(1); }
-            50% { transform: scale(1.05); }
-            100% { transform: scale(1); }
+        .btn:hover {
+            background-color: #0369a1;
+        }
+        .btn-secondary {
+            background-color: #475569;
+        }
+        .btn-secondary:hover {
+            background-color: #334155;
+        }
+
+        /* Стили для форм */
+        .input-field {
+            width: 100%;
+            padding: 12px;
+            margin-bottom: 15px;
+            background-color: #0f172a;
+            border: 1px solid #334155;
+            border-radius: 8px;
+            color: white;
+            font-size: 1rem;
+        }
+        .input-field:focus {
+            outline: none;
+            border-color: #38bdf8;
+        }
+
+        /* Стили для текста переключения */
+        .toggle-link {
+            color: #94a3b8;
+            font-size: 0.9rem;
+            cursor: pointer;
+            text-decoration: underline;
+            margin-top: 15px;
+            display: inline-block;
+        }
+        .toggle-link:hover {
+            color: #38bdf8;
+        }
+
+        /* Скрытие элементов */
+        .hidden {
+            display: none !important;
         }
     </style>
 </head>
 <body>
 
-    <div class="card">
+    <!-- ЭКРАН 1: Главное меню -->
+    <div id="home-view" class="card">
         <div class="logo-icon">🌐</div>
         <h1>Jerk Store</h1>
-        <p>Добро пожаловать! Тестовый мини-сайт успешно запущен. Здесь будет развернута платформа по продаже и настройке мощных роутеров и сетевых решений.</p>
-        <span class="status-badge">⚡ Сайт онлайн (GitHub Pages)</span>
+        
+        <div id="user-status" style="margin-bottom: 20px; color: #10b981; font-weight: bold;" class="hidden">
+            Вы вошли в аккаунт!
+        </div>
+
+        <button class="btn" onclick="handleAction('роутер')">Покупка роутера</button>
+        <button class="btn btn-secondary" onclick="handleAction('VPN')">Покупка VPN</button>
     </div>
+
+    <!-- ЭКРАН 2: Авторизация / Регистрация -->
+    <div id="auth-view" class="card hidden">
+        <div class="logo-icon">🔐</div>
+        <h1 id="auth-title">Регистрация</h1>
+        
+        <input type="text" class="input-field" placeholder="Логин" id="username">
+        <input type="password" class="input-field" placeholder="Пароль" id="password">
+        
+        <button class="btn" onclick="authenticate()" id="auth-btn">Зарегистрироваться</button>
+        
+        <span class="toggle-link" onclick="toggleAuthMode()" id="toggle-text">
+            У меня уже есть аккаунт (Войти)
+        </span>
+    </div>
+
+    <!-- Скрипт с логикой работы -->
+    <script>
+        // Состояние приложения
+        let isLoggedIn = false;
+        let isLoginMode = false;
+        let pendingAction = ""; // Запоминаем, что хотел купить пользователь
+
+        const homeView = document.getElementById('home-view');
+        const authView = document.getElementById('auth-view');
+        const authTitle = document.getElementById('auth-title');
+        const authBtn = document.getElementById('auth-btn');
+        const toggleText = document.getElementById('toggle-text');
+        const userStatus = document.getElementById('user-status');
+
+        // Обработка нажатия на кнопки покупки
+        function handleAction(itemType) {
+            if (isLoggedIn) {
+                // Если уже вошел в аккаунт
+                alert(`Переходим к оформлению заказа: ${itemType}`);
+            } else {
+                // Если не вошел — отправляем на регистрацию
+                pendingAction = itemType;
+                homeView.classList.add('hidden');
+                authView.classList.remove('hidden');
+            }
+        }
+
+        // Переключение между Входом и Регистрацией
+        function toggleAuthMode() {
+            isLoginMode = !isLoginMode; // Меняем режим на противоположный
+            
+            if (isLoginMode) {
+                authTitle.innerText = "Вход в аккаунт";
+                authBtn.innerText = "Войти";
+                toggleText.innerText = "Нет аккаунта? Зарегистрироваться";
+            } else {
+                authTitle.innerText = "Регистрация";
+                authBtn.innerText = "Зарегистрироваться";
+                toggleText.innerText = "У меня уже есть аккаунт (Войти)";
+            }
+        }
+
+        // Имитация успешной регистрации или входа
+        function authenticate() {
+            const loginInput = document.getElementById('username').value;
+            const passInput = document.getElementById('password').value;
+
+            // Простая проверка, чтобы поля не были пустыми
+            if (loginInput === "" || passInput === "") {
+                alert("Пожалуйста, заполните логин и пароль.");
+                return;
+            }
+
+            // Успешный вход
+            isLoggedIn = true;
+            
+            // Возвращаемся на главное меню
+            authView.classList.add('hidden');
+            homeView.classList.remove('hidden');
+            
+            // Показываем статус, что пользователь залогинен
+            userStatus.classList.remove('hidden');
+            userStatus.innerText = `Добро пожаловать, ${loginInput}!`;
+
+            // Напоминаем о том, что он собирался купить
+            setTimeout(() => {
+                alert(`Авторизация успешна! Теперь вы можете оформить: ${pendingAction}`);
+            }, 500);
+        }
+    </script>
 
 </body>
 </html>
