@@ -31,7 +31,6 @@
             border: 1px solid #334155;
         }
         
-        /* Стили для логотипа и заголовков */
         .logo-icon {
             font-size: 50px;
             margin-bottom: 15px;
@@ -43,7 +42,7 @@
             margin-bottom: 25px;
         }
         
-        /* Стили для кнопок */
+        /* Кнопки меню */
         .btn {
             display: block;
             width: 100%;
@@ -68,36 +67,51 @@
             background-color: #334155;
         }
 
-        /* Стили для форм */
-        .input-field {
-            width: 100%;
-            padding: 12px;
-            margin-bottom: 15px;
-            background-color: #0f172a;
-            border: 1px solid #334155;
-            border-radius: 8px;
+        /* Кнопка ТЕЛЕГРАМ */
+        .btn-tg {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            background-color: #24A1DE;
             color: white;
-            font-size: 1rem;
-        }
-        .input-field:focus {
-            outline: none;
-            border-color: #38bdf8;
-        }
-
-        /* Стили для текста переключения */
-        .toggle-link {
-            color: #94a3b8;
-            font-size: 0.9rem;
+            border: none;
+            border-radius: 8px;
+            padding: 14px;
+            width: 100%;
+            font-size: 1.05rem;
+            font-weight: 600;
             cursor: pointer;
-            text-decoration: underline;
-            margin-top: 15px;
-            display: inline-block;
+            transition: background-color 0.2s, transform 0.1s;
         }
-        .toggle-link:hover {
-            color: #38bdf8;
+        .btn-tg:hover {
+            background-color: #1d82b3;
+        }
+        .btn-tg:active {
+            transform: scale(0.98);
+        }
+        .btn-tg svg {
+            width: 24px;
+            height: 24px;
+            fill: white;
         }
 
-        /* Скрытие элементов */
+        /* Прелоадер загрузки */
+        .loader {
+            border: 4px solid #334155;
+            border-top: 4px solid #38bdf8;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 20px auto;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
         .hidden {
             display: none !important;
         }
@@ -111,96 +125,82 @@
         <h1>Jerk Store</h1>
         
         <div id="user-status" style="margin-bottom: 20px; color: #10b981; font-weight: bold;" class="hidden">
-            Вы вошли в аккаунт!
+            🔑 Вы авторизованы через Telegram!
         </div>
 
         <button class="btn" onclick="handleAction('роутер')">Покупка роутера</button>
         <button class="btn btn-secondary" onclick="handleAction('VPN')">Покупка VPN</button>
     </div>
 
-    <!-- ЭКРАН 2: Авторизация / Регистрация -->
+    <!-- ЭКРАН 2: Вход через Telegram -->
     <div id="auth-view" class="card hidden">
         <div class="logo-icon">🔐</div>
-        <h1 id="auth-title">Регистрация</h1>
+        <h1 id="auth-title">Вход на сайт</h1>
+        <p style="color: #94a3b8; margin-bottom: 25px; font-size: 0.95rem;">Для продолжения необходимо подтвердить профиль через мессенджер.</p>
         
-        <input type="text" class="input-field" placeholder="Логин" id="username">
-        <input type="password" class="input-field" placeholder="Пароль" id="password">
-        
-        <button class="btn" onclick="authenticate()" id="auth-btn">Зарегистрироваться</button>
-        
-        <span class="toggle-link" onclick="toggleAuthMode()" id="toggle-text">
-            У меня уже есть аккаунт (Войти)
-        </span>
+        <!-- Кнопка войти -->
+        <button class="btn-tg" id="tg-btn" onclick="startTgAuth()">
+            <svg viewBox="0 0 24 24">
+                <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm4.64 6.8c-.15 1.58-.8 5.42-1.13 7.19-.14.75-.42 1-.68 1.03-.58.05-1.02-.38-1.58-.75-.88-.58-1.38-.94-2.23-1.5-.99-.65-.35-1.01.22-1.59.15-.15 2.71-2.48 2.76-2.69.01-.03.01-.14-.07-.2-.08-.06-.19-.04-.27-.02-.12.02-1.96 1.25-5.54 3.66-.52.36-1 .53-1.42.52-.47-.01-1.37-.26-2.03-.48-.82-.27-1.47-.42-1.42-.88.03-.24.35-.49.97-.74 3.79-1.65 6.32-2.74 7.57-3.27 3.61-1.5 4.36-1.76 4.85-1.77.11 0 .35.03.5.16.13.12.16.29.18.41.02.11.01.3-.01.37z"/>
+            </svg>
+            Войти через Telegram
+        </button>
+
+        <!-- Блок анимации загрузки (скрыт по умолчанию) -->
+        <div id="loading-block" class="hidden">
+            <div class="loader"></div>
+            <p style="color: #38bdf8; font-size: 0.9rem;">Подключение к Telegram API...</p>
+        </div>
     </div>
 
-    <!-- Скрипт с логикой работы -->
     <script>
-        // Состояние приложения
         let isLoggedIn = false;
-        let isLoginMode = false;
-        let pendingAction = ""; // Запоминаем, что хотел купить пользователь
+        let pendingAction = "";
 
         const homeView = document.getElementById('home-view');
         const authView = document.getElementById('auth-view');
-        const authTitle = document.getElementById('auth-title');
-        const authBtn = document.getElementById('auth-btn');
-        const toggleText = document.getElementById('toggle-text');
         const userStatus = document.getElementById('user-status');
+        const tgBtn = document.getElementById('tg-btn');
+        const loadingBlock = document.getElementById('loading-block');
 
-        // Обработка нажатия на кнопки покупки
+        // Клик на покупку
         function handleAction(itemType) {
             if (isLoggedIn) {
-                // Если уже вошел в аккаунт
                 alert(`Переходим к оформлению заказа: ${itemType}`);
             } else {
-                // Если не вошел — отправляем на регистрацию
                 pendingAction = itemType;
                 homeView.classList.add('hidden');
                 authView.classList.remove('hidden');
             }
         }
 
-        // Переключение между Входом и Регистрацией
-        function toggleAuthMode() {
-            isLoginMode = !isLoginMode; // Меняем режим на противоположный
-            
-            if (isLoginMode) {
-                authTitle.innerText = "Вход в аккаунт";
-                authBtn.innerText = "Войти";
-                toggleText.innerText = "Нет аккаунта? Зарегистрироваться";
-            } else {
-                authTitle.innerText = "Регистрация";
-                authBtn.innerText = "Зарегистрироваться";
-                toggleText.innerText = "У меня уже есть аккаунт (Войти)";
-            }
-        }
+        // Логика имитации авторизации Telegram
+        function startTgAuth() {
+            // Прячем кнопку, показываем лоадер крутилку
+            tgBtn.classList.add('hidden');
+            loadingBlock.classList.remove('hidden');
 
-        // Имитация успешной регистрации или входа
-        function authenticate() {
-            const loginInput = document.getElementById('username').value;
-            const passInput = document.getElementById('password').value;
-
-            // Простая проверка, чтобы поля не были пустыми
-            if (loginInput === "" || passInput === "") {
-                alert("Пожалуйста, заполните логин и пароль.");
-                return;
-            }
-
-            // Успешный вход
-            isLoggedIn = true;
-            
-            // Возвращаемся на главное меню
-            authView.classList.add('hidden');
-            homeView.classList.remove('hidden');
-            
-            // Показываем статус, что пользователь залогинен
-            userStatus.classList.remove('hidden');
-            userStatus.innerText = `Добро пожаловать, ${loginInput}!`;
-
-            // Напоминаем о том, что он собирался купить
+            // Имитируем задержку ответа от серверов Telegram в 2 секунды
             setTimeout(() => {
-                alert(`Авторизация успешна! Теперь вы можете оформить: ${pendingAction}`);
-            }, 500);
+                isLoggedIn = true;
+                
+                // Возвращаемся на главный экран
+                authView.classList.add('hidden');
+                homeView.classList.remove('hidden');
+                
+                // Показываем плашку успешного входа
+                userStatus.classList.remove('hidden');
+
+                // Сбрасываем состояние окна авторизации на будущее
+                tgBtn.classList.remove('hidden');
+                loadingBlock.classList.add('hidden');
+
+                // Сообщение для пользователя
+                setTimeout(() => {
+                    alert(`Авторизация через Telegram успешна! Теперь вы можете оформить: ${pendingAction}`);
+                }, 400);
+
+            }, 2000); // 2000 миллисекунд = 2 секунды
         }
     </script>
 
