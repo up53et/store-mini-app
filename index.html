@@ -53,7 +53,6 @@
             border-radius: 50%;
         }
         
-        /* Корона админа */
         .admin-badge {
             position: absolute;
             top: -8px;
@@ -136,7 +135,6 @@
             margin-bottom: 25px;
         }
         
-        /* Кнопки */
         .btn {
             display: block;
             width: 100%;
@@ -165,17 +163,17 @@
         }
         .btn-danger {
             background-color: #ef4444;
-            padding: 5px 10px;
+            padding: 4px 8px;
             font-size: 0.8rem;
             width: auto;
             display: inline-block;
             margin: 0;
+            border-radius: 4px;
         }
         .btn-danger:hover {
             background-color: #dc2626;
         }
 
-        /* Кнопка с флагом */
         .btn-flag {
             display: flex;
             align-items: center;
@@ -210,7 +208,7 @@
             border: 1px solid #334155;
         }
 
-        /* Разделы админки */
+        /* Элементы Админки */
         .admin-section {
             background: #0f172a;
             padding: 15px;
@@ -224,6 +222,9 @@
             margin-bottom: 10px;
             border-bottom: 1px solid #334155;
             padding-bottom: 5px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
         }
         .admin-input-group {
             display: flex;
@@ -245,16 +246,34 @@
         }
         .admin-list {
             list-style: none;
-            max-height: 150px;
+            max-height: 180px;
             overflow-y: auto;
         }
         .admin-list li {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            padding: 6px 0;
+            padding: 8px;
             border-bottom: 1px solid #1e293b;
             font-size: 0.9rem;
+            background: #1e293b;
+            margin-bottom: 4px;
+            border-radius: 6px;
+        }
+        .clickable-li {
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+        .clickable-li:hover {
+            background: #334155;
+            border-left: 3px solid #38bdf8;
+        }
+
+        .back-link {
+            color: #38bdf8;
+            cursor: pointer;
+            font-size: 0.85rem;
+            text-decoration: underline;
         }
 
         .show {
@@ -274,7 +293,7 @@
             <div class="admin-badge" id="admin-crown">👑</div>
         </div>
         <div class="profile-dropdown" id="profile-menu">
-            <button class="dropdown-item admin-btn" id="admin-dropdown-link" onclick="openAdminPanel()">👑 Админка</button>
+            <button class="dropdown-item admin-btn" id="admin-dropdown-link" onclick="openAdminProtocolSelect()">👑 Админка</button>
             <button class="dropdown-item" onclick="openSettings()">Настройки</button>
             <button class="dropdown-item logout" onclick="logout()">Выйти</button>
         </div>
@@ -309,7 +328,7 @@
         </div>
     </div>
 
-    <!-- ЭКРАН 3: Выбор протокола VPN -->
+    <!-- ЭКРАН 3: Выбор протокола VPN (Юзер) -->
     <div id="vpn-protocol-view" class="card hidden">
         <div class="logo-icon">🛠️</div>
         <h1>Выбор протокола</h1>
@@ -322,13 +341,12 @@
         <button class="btn btn-secondary" style="margin-top: 10px;" onclick="goBackToHome()">Назад</button>
     </div>
 
-    <!-- ЭКРАН 4: Выбор локации -->
+    <!-- ЭКРАН 4: Выбор локации (Юзер) -->
     <div id="vpn-country-view" class="card hidden">
         <div class="logo-icon">🌍</div>
         <h1>Выбор локации</h1>
         <p class="subtitle">Выберите доступную страну для вашего сервера:</p>
         
-        <!-- Сюда динамически рендерятся страны из админки -->
         <div id="countries-list-user"></div>
         
         <button class="btn btn-secondary" style="margin-top: 10px;" onclick="goBackToProtocol()">Назад</button>
@@ -347,45 +365,65 @@
             <p>• Локация: <strong id="summary-country">-</strong></p>
             
             <p style="color: #eab308; margin-top: 15px; font-weight: bold;">Ваш ключ доступа:</p>
-            <div class="key-display" id="user-vpn-key">Ключи закончились, обратитесь в поддержку</div>
+            <div class="key-display" id="user-vpn-key">-</div>
         </div>
 
         <button class="btn" style="margin-top: 25px;" onclick="goBackToHome()">В главное меню</button>
     </div>
 
-    <!-- ЭКРАН 6: АДМИН-ПАНЕЛЬ -->
-    <div id="admin-view" class="card hidden" style="max-width: 550px;">
+    <!-- АДМИНКА - ЭКРАН ПОДБОРЫ ПРОТОКОЛА -->
+    <div id="admin-proto-view" class="card hidden">
         <div class="logo-icon">👑</div>
-        <h1 style="color: #eab308;">Панель администратора</h1>
-        <p class="subtitle" style="margin-bottom: 20px;">Управление контентом NetVault</p>
+        <h1 style="color: #eab308;">Админка: Протоколы</h1>
+        <p class="subtitle">Выберите протокол для управления его базами</p>
         
-        <!-- Управление странами -->
+        <button class="btn" onclick="openAdminCountries('Vless')">Управление Vless</button>
+        <button class="btn" onclick="openAdminCountries('AmneziaWG')">Управление AmneziaWG</button>
+        <button class="btn" onclick="openAdminCountries('WireGuard')">Управление WireGuard</button>
+        
+        <button class="btn btn-secondary" style="margin-top: 10px;" onclick="goBackToHome()">Выйти</button>
+    </div>
+
+    <!-- АДМИНКА - ЭКРАН УПРАВЛЕНИЯ СТРАНАМИ -->
+    <div id="admin-countries-view" class="card hidden" style="max-width: 500px;">
+        <div class="logo-icon">🌍</div>
+        <h1 style="color: #eab308;" id="admin-countries-title">Страны</h1>
+        <p class="subtitle">Нажми на страну, чтобы управлять её ключами</p>
+        
         <div class="admin-section">
-            <h3>🌍 Управление странами</h3>
+            <h3>Добавить страну</h3>
             <div class="admin-input-group">
-                <input type="text" id="new-country-name" class="admin-input" placeholder="Например: Германия">
-                <input type="text" id="new-country-flag" class="admin-input" placeholder="Эмодзи флага: 🇩🇪" style="max-width: 100px;">
+                <input type="text" id="new-country-name" class="admin-input" placeholder="Германия">
+                <input type="text" id="new-country-flag" class="admin-input" placeholder="🇩🇪" style="max-width: 70px;">
                 <button class="btn" style="margin:0; width:auto; padding:8px 15px;" onclick="addCountry()">+</button>
             </div>
             <ul class="admin-list" id="admin-countries-list"></ul>
         </div>
 
-        <!-- Управление ключами -->
+        <button class="btn btn-secondary" onclick="openAdminProtocolSelect()">Назад к протоколам</button>
+    </div>
+
+    <!-- АДМИНКА - ЭКРАН УПРАВЛЕНИЯ КЛЮЧАМИ СТРАНЫ -->
+    <div id="admin-keys-view" class="card hidden" style="max-width: 520px;">
+        <div class="logo-icon">🔑</div>
+        <h1 style="color: #eab308;" id="admin-keys-title">Ключи</h1>
+        <p class="subtitle" id="admin-keys-subtitle">Управление пулом ключей</p>
+        
         <div class="admin-section">
-            <h3>🔑 Пул VPN ключей</h3>
+            <h3>Добавить VPN-ключ</h3>
             <div class="admin-input-group">
-                <input type="text" id="new-vpn-key" class="admin-input" placeholder="Вставьте vless://... или конфиг">
+                <input type="text" id="new-vpn-key" class="admin-input" placeholder="vless://... или конфиг">
                 <button class="btn" style="margin:0; width:auto; padding:8px 15px;" onclick="addVpnKey()">+</button>
             </div>
             <ul class="admin-list" id="admin-keys-list"></ul>
         </div>
 
-        <button class="btn btn-secondary" style="margin-top: 10px;" onclick="goBackToHome()">Выйти из админки</button>
+        <button class="btn btn-secondary" onclick="goBackToAdminCountries()">Назад к странам</button>
     </div>
 
 
     <script>
-        // Твой персональный Telegram ID зашит в систему:
+        // Твой Telegram ID
         const ADMIN_IDS = [5737961034]; 
 
         let isLoggedIn = false;
@@ -395,176 +433,237 @@
         let selectedProtocolName = "";
         let selectedCountryName = "";
 
-        // Базовые данные по умолчанию, если LocalStorage пустой
-        const defaultCountries = [
-            { id: 1, name: "Нидерланды", flag: "🇳🇱" },
-            { id: 2, name: "Франция", flag: "🇫🇷" }
-        ];
-        const defaultKeys = [
-            "vless://93b9b4d1-example-netvault-nl",
-            "vless://e8a2a1c0-example-netvault-fr"
-        ];
+        // Текущий выбор в админке
+        let adminSelectedProtocol = "";
+        let adminSelectedCountryId = null;
 
-        // Загрузка данных из LocalStorage или установка дефолтных
-        let countries = JSON.parse(localStorage.getItem('nv_countries')) || defaultCountries;
-        let vpnKeys = JSON.parse(localStorage.getItem('nv_keys')) || defaultKeys;
+        // Структура базы данных по умолчанию
+        const defaultDatabase = {
+            "Vless": [
+                { id: 101, name: "Нидерланды", flag: "🇳🇱", keys: ["vless://netvault-vless-nl-1", "vless://netvault-vless-nl-2"] },
+                { id: 102, name: "Франция", flag: "🇫🇷", keys: ["vless://netvault-vless-fr-1"] }
+            ],
+            "AmneziaWG": [
+                { id: 201, name: "Нидерланды", flag: "🇳🇱", keys: ["amnezia//netvault-awg-nl-1"] }
+            ],
+            "WireGuard": [
+                { id: 301, name: "Германия", flag: "🇩🇪", keys: ["wg//netvault-wg-de-1"] }
+            ]
+        };
 
+        // Загрузка базы данных из LocalStorage
+        let db = JSON.parse(localStorage.getItem('nv_vpn_db')) || defaultDatabase;
+
+        // Элементы интерфейса
         const homeView = document.getElementById('home-view');
         const authView = document.getElementById('auth-view');
         const vpnProtocolView = document.getElementById('vpn-protocol-view');
         const vpnCountryView = document.getElementById('vpn-country-view');
         const orderSuccessView = document.getElementById('order-success-view');
-        const adminView = document.getElementById('admin-view');
         
+        const adminProtoView = document.getElementById('admin-proto-view');
+        const adminCountriesView = document.getElementById('admin-countries-view');
+        const adminKeysView = document.getElementById('admin-keys-view');
+
         const userStatus = document.getElementById('user-status');
         const avatarBtn = document.getElementById('avatar-btn');
         const profileMenu = document.getElementById('profile-menu');
         const adminDropdownLink = document.getElementById('admin-dropdown-link');
 
+        function saveDb() {
+            localStorage.setItem('nv_vpn_db', JSON.stringify(db));
+        }
+
         function handleAction(itemType) {
             if (isLoggedIn) {
                 if (itemType === 'vpn') {
-                    openProtocolScreen();
+                    hideAllViews();
+                    vpnProtocolView.classList.remove('hidden');
                 } else {
                     alert(`Оформление покупки физического роутера NetVault находится в разработке.`);
                 }
             } else {
                 pendingAction = itemType;
-                openAuthScreen();
+                hideAllViews();
+                authView.classList.remove('hidden');
             }
-        }
-
-        function openProtocolScreen() {
-            hideAllViews();
-            vpnProtocolView.classList.remove('hidden');
         }
 
         function selectProtocol(protocol) {
             selectedProtocolName = protocol;
             hideAllViews();
-            renderUserCountries(); // Строим список стран на основе актуальной админки
+            renderUserCountries();
             vpnCountryView.classList.remove('hidden');
         }
 
-        // Рендер стран для обычного пользователя
+        // Вывод стран для обычного юзера в зависимости от выбранного протокола
         function renderUserCountries() {
             const container = document.getElementById('countries-list-user');
             container.innerHTML = "";
             
-            if (countries.length === 0) {
-                container.innerHTML = "<p class='subtitle'>Нет доступных локаций.</p>";
+            const availableCountries = db[selectedProtocolName] || [];
+
+            if (availableCountries.length === 0) {
+                container.innerHTML = "<p class='subtitle'>Для этого протокола пока нет доступных локаций.</p>";
                 return;
             }
 
-            countries.forEach(country => {
+            availableCountries.forEach(country => {
                 const btn = document.createElement('button');
                 btn.className = "btn btn-flag";
                 btn.innerHTML = `<span>${country.flag}</span> ${country.name}`;
-                btn.onclick = () => selectCountry(country.name);
+                btn.onclick = () => selectCountry(country);
                 container.appendChild(btn);
             });
         }
 
-        function selectCountry(country) {
-            selectedCountryName = country;
+        function selectCountry(countryObj) {
+            selectedCountryName = countryObj.name;
             hideAllViews();
             
             document.getElementById('summary-protocol').innerText = selectedProtocolName;
-            document.getElementById('summary-country').innerText = selectedCountryName;
+            document.getElementById('summary-country').innerText = countryObj.flag + " " + selectedCountryName;
             
-            // Берем первый доступный ключ из пула и отдаем юзеру (удаляя его из базы)
             const keyDisplay = document.getElementById('user-vpn-key');
-            if (vpnKeys.length > 0) {
-                const issuedKey = vpnKeys.shift(); // Забираем первый ключ
+            
+            // Находим эту страну в нашей общей базе данных, чтобы забрать ключ
+            const protoList = db[selectedProtocolName];
+            const liveCountry = protoList.find(c => c.id === countryObj.id);
+
+            if (liveCountry && liveCountry.keys && liveCountry.keys.length > 0) {
+                const issuedKey = liveCountry.keys.shift(); // Срезаем первый ключ
                 keyDisplay.innerText = issuedKey;
-                localStorage.setItem('nv_keys', JSON.stringify(vpnKeys)); // Сохраняем уменьшенный пул
+                saveDb(); // Сохраняем изменение в LocalStorage
             } else {
-                keyDisplay.innerText = "Ключи временно закончились. Администратор скоро добавит новые!";
+                keyDisplay.innerText = "Ключи для этой локации закончились. Администратор скоро добавит новые!";
             }
             
             orderSuccessView.classList.remove('hidden');
         }
 
-        function openAdminPanel() {
+        /* --- ЛОГИКА АДМИН-ПАНЕЛИ --- */
+
+        function openAdminProtocolSelect() {
             hideAllViews();
-            renderAdminPanel();
-            adminView.classList.remove('hidden');
+            adminProtoView.classList.remove('hidden');
             profileMenu.classList.remove('show');
         }
 
-        // Рендер списков внутри админки
-        function renderAdminPanel() {
-            // Список стран
-            const countriesList = document.getElementById('admin-countries-list');
-            countriesList.innerHTML = "";
-            countries.forEach((country, index) => {
-                const li = document.createElement('li');
-                li.innerHTML = `
-                    <span>${country.flag} ${country.name}</span>
-                    <button class="btn btn-danger" onclick="deleteCountry(${index})">Удалить</button>
-                `;
-                countriesList.appendChild(li);
-            });
+        function openAdminCountries(protocol) {
+            adminSelectedProtocol = protocol;
+            hideAllViews();
+            
+            document.getElementById('admin-countries-title').innerText = `🌍 ${protocol}: Страны`;
+            renderAdminCountriesList();
+            
+            adminCountriesView.classList.remove('hidden');
+        }
 
-            // Список ключей
-            const keysList = document.getElementById('admin-keys-list');
-            keysList.innerHTML = "";
-            vpnKeys.forEach((key, index) => {
+        function renderAdminCountriesList() {
+            const listContainer = document.getElementById('admin-countries-list');
+            listContainer.innerHTML = "";
+            
+            const list = db[adminSelectedProtocol] || [];
+
+            list.forEach(country => {
                 const li = document.createElement('li');
-                // Обрезаем длинный ключ для красоты в админке
-                const shortKey = key.length > 30 ? key.substring(0, 30) + "..." : key;
+                li.className = "clickable-li";
                 li.innerHTML = `
-                    <span style="font-family: monospace; font-size:0.8rem; color:#10b981;">${shortKey}</span>
-                    <button class="btn btn-danger" onclick="deleteKey(${index})">Удалить</button>
+                    <span onclick="openAdminKeys(${country.id}, '${country.name}', '${country.flag}')" style="flex:1; padding: 5px 0;">
+                        ${country.flag} ${country.name} <small style="color:#94a3b8; margin-left:10px;">(Ключей: ${country.keys.length})</small>
+                    </span>
+                    <button class="btn btn-danger" onclick="deleteCountry(${country.id})">Удалить</button>
                 `;
-                keysList.appendChild(li);
+                listContainer.appendChild(li);
             });
         }
 
-        // Функции управления СТРАНАМИ
         function addCountry() {
             const nameInput = document.getElementById('new-country-name');
             const flagInput = document.getElementById('new-country-flag');
             
-            if (!nameInput.value.trim()) return alert("Введите название страны");
+            if (!nameInput.value.trim()) return alert("Укажите название страны");
             
             const newCountry = {
                 id: Date.now(),
                 name: nameInput.value.trim(),
-                flag: flagInput.value.trim() || "🌐"
+                flag: flagInput.value.trim() || "🌐",
+                keys: []
             };
 
-            countries.push(newCountry);
-            localStorage.setItem('nv_countries', JSON.stringify(countries));
+            db[adminSelectedProtocol].push(newCountry);
+            saveDb();
             
             nameInput.value = "";
             flagInput.value = "";
-            renderAdminPanel();
+            renderAdminCountriesList();
         }
 
-        function deleteCountry(index) {
-            countries.splice(index, 1);
-            localStorage.setItem('nv_countries', JSON.stringify(countries));
-            renderAdminPanel();
+        function deleteCountry(id) {
+            db[adminSelectedProtocol] = db[adminSelectedProtocol].filter(c => c.id !== id);
+            saveDb();
+            renderAdminCountriesList();
         }
 
-        // Функции управления КЛЮЧАМИ
+        // Открытие ключей конкретной страны
+        function openAdminKeys(countryId, countryName, countryFlag) {
+            adminSelectedCountryId = countryId;
+            hideAllViews();
+            
+            document.getElementById('admin-keys-title').innerText = `${countryFlag} Ключи: ${countryName}`;
+            document.getElementById('admin-keys-subtitle').innerText = `Протокол: ${adminSelectedProtocol}`;
+            
+            renderAdminKeysList();
+            adminKeysView.classList.remove('hidden');
+        }
+
+        function renderAdminKeysList() {
+            const listContainer = document.getElementById('admin-keys-list');
+            listContainer.innerHTML = "";
+            
+            const country = db[adminSelectedProtocol].find(c => c.id === adminSelectedCountryId);
+            if (!country) return;
+
+            country.keys.forEach((key, index) => {
+                const li = document.createElement('li');
+                const shortKey = key.length > 35 ? key.substring(0, 35) + "..." : key;
+                li.innerHTML = `
+                    <span style="font-family: monospace; font-size:0.8rem; color:#10b981;">${shortKey}</span>
+                    <button class="btn btn-danger" onclick="deleteKey(${index})">Удалить</button>
+                `;
+                listContainer.appendChild(li);
+            });
+        }
+
         function addVpnKey() {
             const keyInput = document.getElementById('new-vpn-key');
-            if (!keyInput.value.trim()) return alert("Вставьте текст ключа");
+            if (!keyInput.value.trim()) return alert("Вставьте конфигурацию ключа");
 
-            vpnKeys.push(keyInput.value.trim());
-            localStorage.setItem('nv_keys', JSON.stringify(vpnKeys));
-            
-            keyInput.value = "";
-            renderAdminPanel();
+            const country = db[adminSelectedProtocol].find(c => c.id === adminSelectedCountryId);
+            if (country) {
+                country.keys.push(keyInput.value.trim());
+                saveDb();
+                keyInput.value = "";
+                renderAdminKeysList();
+            }
         }
 
         function deleteKey(index) {
-            vpnKeys.splice(index, 1);
-            localStorage.setItem('nv_keys', JSON.stringify(vpnKeys));
-            renderAdminPanel();
+            const country = db[adminSelectedProtocol].find(c => c.id === adminSelectedCountryId);
+            if (country) {
+                country.keys.splice(index, 1);
+                saveDb();
+                renderAdminKeysList();
+            }
         }
+
+        function goBackToAdminCountries() {
+            hideAllViews();
+            adminCountriesView.classList.remove('hidden');
+            renderAdminCountriesList(); // Перерисовываем, чтобы обновились счетчики ключей
+        }
+
+        /* --- СИСТЕМНЫЕ ФУНКЦИИ И НАВИГАЦИЯ --- */
 
         function goBackToHome() {
             hideAllViews();
@@ -576,24 +675,21 @@
             vpnProtocolView.classList.remove('hidden');
         }
 
-        function openAuthScreen() {
-            hideAllViews();
-            authView.classList.remove('hidden');
-            profileMenu.classList.remove('show');
-        }
-
         function hideAllViews() {
             homeView.classList.add('hidden');
             authView.classList.add('hidden');
             vpnProtocolView.classList.add('hidden');
             vpnCountryView.classList.add('hidden');
             orderSuccessView.classList.add('hidden');
-            adminView.classList.add('hidden');
+            adminProtoView.classList.add('hidden');
+            adminCountriesView.classList.add('hidden');
+            adminKeysView.classList.add('hidden');
         }
 
         function handleAvatarClick() {
             if (!isLoggedIn) {
-                openAuthScreen();
+                hideAllViews();
+                authView.classList.remove('hidden');
             } else {
                 profileMenu.classList.toggle('show');
             }
@@ -601,7 +697,6 @@
 
         function onTelegramAuth(user) {
             isLoggedIn = true;
-            
             userStatus.classList.remove('hidden');
             userStatus.innerText = `👋 Привет, ${user.first_name}!`;
 
@@ -624,7 +719,8 @@
             }
 
             if (pendingAction === 'vpn') {
-                openProtocolScreen();
+                hideAllViews();
+                vpnProtocolView.classList.remove('hidden');
             } else {
                 goBackToHome();
             }
