@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Jerk Store | Сетевое оборудование и VPN</title>
+    <title>NetVault | Сетевое оборудование и VPN</title>
     <style>
         * {
             box-sizing: border-box;
@@ -22,11 +22,11 @@
             position: relative;
         }
         
-        /* Виджет профиля в верхнем углу */
+        /* Профиль слева */
         .profile-container {
             position: absolute;
             top: 20px;
-            left: 20px; /* Размещено слева, как ты просил */
+            left: 20px;
             z-index: 100;
         }
         .avatar {
@@ -52,7 +52,6 @@
             object-fit: cover;
         }
 
-        /* Выпадающее меню профиля */
         .profile-dropdown {
             position: absolute;
             top: 55px;
@@ -108,9 +107,15 @@
         h1 {
             font-size: 1.8rem;
             color: #38bdf8;
+            margin-bottom: 10px;
+        }
+        .subtitle {
+            color: #94a3b8;
+            font-size: 0.95rem;
             margin-bottom: 25px;
         }
         
+        /* Кнопки */
         .btn {
             display: block;
             width: 100%;
@@ -123,10 +128,13 @@
             font-size: 1rem;
             font-weight: 600;
             cursor: pointer;
-            transition: background-color 0.2s;
+            transition: background-color 0.2s, transform 0.1s;
         }
         .btn:hover {
             background-color: #0369a1;
+        }
+        .btn:active {
+            transform: scale(0.99);
         }
         .btn-secondary {
             background-color: #475569;
@@ -142,6 +150,16 @@
             min-height: 40px;
         }
 
+        /* Текст успешного заказа */
+        .order-box {
+            background: #0f172a;
+            border: 1px dashed #10b981;
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 15px;
+            text-align: left;
+        }
+
         .show {
             display: flex !important;
         }
@@ -155,10 +173,8 @@
     <!-- БЛОК ПРОФИЛЯ СЛЕВА -->
     <div class="profile-container">
         <div class="avatar" id="avatar-btn" onclick="handleAvatarClick()">
-            <!-- По умолчанию показываем эмодзи замочка -->
             <span id="avatar-placeholder">👤</span>
         </div>
-        <!-- Выпадашка (скрыта по умолчанию) -->
         <div class="profile-dropdown" id="profile-menu">
             <button class="dropdown-item" onclick="openSettings()">Настройки</button>
             <button class="dropdown-item logout" onclick="logout()">Выйти</button>
@@ -167,23 +183,23 @@
 
     <!-- ЭКРАН 1: Главное меню -->
     <div id="home-view" class="card">
-        <div class="logo-icon">🌐</div>
-        <h1>Jerk Store</h1>
+        <div class="logo-icon">⚡</div>
+        <h1>NetVault</h1>
+        <p class="subtitle">Приватные VPN-серверы и оборудование</p>
         
         <div id="user-status" style="margin-bottom: 20px; color: #10b981; font-weight: bold;" class="hidden"></div>
 
-        <button class="btn" onclick="handleAction('роутер')">Покупка роутера</button>
-        <button class="btn btn-secondary" onclick="handleAction('VPN')">Покупка VPN</button>
+        <button class="btn" onclick="handleAction('router')">Покупка роутера</button>
+        <button class="btn btn-secondary" onclick="handleAction('vpn')">Покупка VPN</button>
     </div>
 
     <!-- ЭКРАН 2: Вход через Telegram -->
     <div id="auth-view" class="card hidden">
         <div class="logo-icon">🔐</div>
         <h1>Вход через Telegram</h1>
-        <p style="color: #94a3b8; margin-bottom: 25px; font-size: 0.95rem;">Нажмите на кнопку ниже, чтобы войти с помощью своего Telegram-аккаунта.</p>
+        <p class="subtitle">Для настройки конфигурации и оформления заказа необходимо авторизоваться.</p>
         
         <div class="tg-widget-container">
-            <!-- Официальный виджет Telegram для @NettVault_bot -->
             <script async src="https://telegram.org/js/telegram-widget.js?22" 
                 data-telegram-login="NettVault_bot" 
                 data-size="large" 
@@ -194,91 +210,173 @@
         </div>
     </div>
 
+    <!-- ЭКРАН 3: Выбор протокола VPN -->
+    <div id="vpn-protocol-view" class="card hidden">
+        <div class="logo-icon">🛠️</div>
+        <h1>Выбор протокола</h1>
+        <p class="subtitle">Какой протокол VPN вы хотите использовать?</p>
+        
+        <button class="btn" onclick="selectProtocol('Vless')">Vless (Максимальный обход блокировок)</button>
+        <button class="btn" onclick="selectProtocol('AmneziaWG')">AmneziaWG (Устойчивый WireGuard)</button>
+        <button class="btn" onclick="selectProtocol('WireGuard')">WireGuard (Высокая скорость)</button>
+        
+        <button class="btn btn-secondary" style="margin-top: 10px;" onclick="goBackToHome()">Назад</button>
+    </div>
+
+    <!-- ЭКРАН 4: Выбор локации сервера -->
+    <div id="vpn-country-view" class="card hidden">
+        <div class="logo-icon">🌍</div>
+        <h1>Выбор локации</h1>
+        <p class="subtitle">Выберите доступную страну для вашего сервера:</p>
+        
+        <button class="btn" onclick="selectCountry('Нидерланды 🇳🇱')">Нидерланды 🇳🇱</button>
+        
+        <button class="btn btn-secondary" style="margin-top: 10px;" onclick="goBackToProtocol()">Назад</button>
+    </div>
+
+    <!-- ЭКРАН 5: Чек / Успешное оформление -->
+    <div id="order-success-view" class="card hidden">
+        <div class="logo-icon">🎉</div>
+        <h1 style="color: #10b981;">Заказ сформирован!</h1>
+        <p class="subtitle">Конфигурация успешно создана.</p>
+        
+        <div class="order-box">
+            <p style="color: #38bdf8; margin-bottom: 5px; font-weight: bold;">Детали конфигурации:</p>
+            <p>• Услуга: <strong>Приватный VPN</strong></p>
+            <p>• Протокол: <strong id="summary-protocol">-</strong></p>
+            <p>• Локация: <strong id="summary-country">-</strong></p>
+        </div>
+
+        <button class="btn" style="margin-top: 25px;" onclick="goBackToHome()">В главное меню</button>
+    </div>
+
+
     <script>
         let isLoggedIn = false;
         let pendingAction = "";
+        
+        // Переменные для конфигурации заказа
+        let selectedProtocolName = "";
+        let selectedCountryName = "";
 
+        // Ссылки на экраны
         const homeView = document.getElementById('home-view');
         const authView = document.getElementById('auth-view');
-        const userStatus = document.getElementById('user-status');
+        const vpnProtocolView = document.getElementById('vpn-protocol-view');
+        const vpnCountryView = document.getElementById('vpn-country-view');
+        const orderSuccessView = document.getElementById('order-success-view');
         
+        const userStatus = document.getElementById('user-status');
         const avatarBtn = document.getElementById('avatar-btn');
-        const avatarPlaceholder = document.getElementById('avatar-placeholder');
         const profileMenu = document.getElementById('profile-menu');
 
-        // Клик по кнопкам каталога
+        // Логика нажатия главных кнопок меню
         function handleAction(itemType) {
             if (isLoggedIn) {
-                alert(`Переходим к оформлению заказа: ${itemType}`);
+                if (itemType === 'vpn') {
+                    openProtocolScreen();
+                } else {
+                    alert(`Оформление покупки физического роутера NetVault находится в разработке.`);
+                }
             } else {
                 pendingAction = itemType;
                 openAuthScreen();
             }
         }
 
-        // Функция открытия экрана авторизации
+        // Переходы по экранам VPN
+        function openProtocolScreen() {
+            hideAllViews();
+            vpnProtocolView.classList.remove('hidden');
+        }
+
+        function selectProtocol(protocol) {
+            selectedProtocolName = protocol;
+            hideAllViews();
+            vpnCountryView.classList.remove('hidden');
+        }
+
+        function selectCountry(country) {
+            selectedCountryName = country;
+            hideAllViews();
+            
+            // Заполняем финальный чек данными
+            document.getElementById('summary-protocol').innerText = selectedProtocolName;
+            document.getElementById('summary-country').innerText = selectedCountryName;
+            
+            orderSuccessView.classList.remove('hidden');
+        }
+
+        // Кнопки возврата назад
+        function goBackToHome() {
+            hideAllViews();
+            homeView.classList.remove('hidden');
+        }
+
+        function goBackToProtocol() {
+            hideAllViews();
+            vpnProtocolView.classList.remove('hidden');
+        }
+
         function openAuthScreen() {
-            homeView.classList.add('hidden');
+            hideAllViews();
             authView.classList.remove('hidden');
             profileMenu.classList.remove('show');
         }
 
-        // Клик по самой аватарке
+        function hideAllViews() {
+            homeView.classList.add('hidden');
+            authView.classList.add('hidden');
+            vpnProtocolView.classList.add('hidden');
+            vpnCountryView.classList.add('hidden');
+            orderSuccessView.classList.add('hidden');
+        }
+
+        // Клик по аватарке профиля
         function handleAvatarClick() {
             if (!isLoggedIn) {
-                // Если не залогинен — клик ведет на страницу входа
                 openAuthScreen();
             } else {
-                // Если залогинен — переключаем показ выпадающего меню (открыть/закрыть)
                 profileMenu.classList.toggle('show');
             }
         }
 
-        // Успешный вход через виджет Telegram
+        // Успешная авторизация виджета Telegram
         function onTelegramAuth(user) {
             isLoggedIn = true;
-            
-            authView.classList.add('hidden');
-            homeView.classList.remove('hidden');
             
             userStatus.classList.remove('hidden');
             userStatus.innerText = `👋 Привет, ${user.first_name}!`;
 
-            // Магия подгрузки реальной аватарки:
-            // Если у пользователя в ТГ есть фото, Telegram передаст ссылку в user.photo_url
             if (user.photo_url) {
                 avatarBtn.innerHTML = `<img src="${user.photo_url}" alt="Avatar">`;
             } else {
-                avatarBtn.innerHTML = `<span>😎</span>`; // если фото нет, ставим крутой эмодзи
+                avatarBtn.innerHTML = `<span>😎</span>`;
             }
 
-            if (pendingAction) {
-                setTimeout(() => {
-                    alert(`${user.first_name}, вы можете продолжить покупку: ${pendingAction}`);
-                    pendingAction = ""; // сбрасываем
-                }, 300);
+            // Направляем юзера туда, куда он шёл до авторизации
+            if (pendingAction === 'vpn') {
+                openProtocolScreen();
+            } else {
+                goBackToHome();
             }
+            pendingAction = ""; 
         }
 
-        // Функция Настроек
         function openSettings() {
-            alert("Раздел настроек находится в разработке.");
+            alert("Раздел настроек в разработке.");
             profileMenu.classList.remove('show');
         }
 
-        // Функция Выхода из аккаунта
         function logout() {
             isLoggedIn = false;
             userStatus.classList.add('hidden');
-            
-            // Возвращаем дефолтный силуэт в кружок
             avatarBtn.innerHTML = `<span id="avatar-placeholder">👤</span>`;
             profileMenu.classList.remove('show');
-            
+            goBackToHome();
             alert("Вы вышли из системы.");
         }
 
-        // Закрывать меню, если кликнули в любое другое место экрана
         window.onclick = function(event) {
             if (!event.target.closest('.profile-container')) {
                 profileMenu.classList.remove('show');
