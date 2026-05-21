@@ -270,12 +270,6 @@
             border-left: 3px solid #38bdf8;
         }
 
-        .loading-text {
-            color: #94a3b8;
-            font-size: 0.9rem;
-            font-style: italic;
-        }
-
         .show {
             display: flex !important;
         }
@@ -414,15 +408,17 @@
 
 
     <script>
-        // ==========================================
-        // 💾 ТВОИ ГОТОВЫЕ НАСТРОЙКИ SUPABASE (ИРЛАНДИЯ):
-        // ==========================================
+        // Данные твоего проекта Supabase в Ирландии
         const SUPABASE_URL = "https://ufpfkvuujlrcgpiquaep.supabase.co"; 
         const SUPABASE_KEY = "sb_publishable_uTITwoPrMgGoZReqJ35x1g_ejOU4eXF"; 
-        // ==========================================
 
-        // Инициализируем клиент Supabase
-        const supabase = window['@supabase/supabase-js'].createClient(SUPABASE_URL, SUPABASE_KEY);
+        // Безопасная инициализация клиента
+        let supabase = null;
+        try {
+            supabase = window['@supabase/supabase-js'].createClient(SUPABASE_URL, SUPABASE_KEY);
+        } catch(e) {
+            console.error("Критическая ошибка подключения библиотеки Supabase:", e);
+        }
 
         const ADMIN_IDS = [5737961034]; 
 
@@ -454,17 +450,19 @@
         const profileMenu = document.getElementById('profile-menu');
         const adminDropdownLink = document.getElementById('admin-dropdown-link');
 
-        // Скачивание всей базы данных из Ирландии
+        // Безопасное скачивание базы без зависания интерфейса
         async function fetchDatabase() {
-            const { data, error } = await supabase
-                .from('vpn_data')
-                .select('*');
-            
-            if (error) {
-                console.error("Ошибка синхронизации с Ирландией:", error);
-                return;
+            if (!supabase) return;
+            try {
+                const { data, error } = await supabase.from('vpn_data').select('*');
+                if (error) {
+                    console.error("Ошибка чтения таблицы vpn_data:", error.message);
+                } else {
+                    rawCloudData = data || [];
+                }
+            } catch (err) {
+                console.error("Ошибка сети с сервером в Ирландии:", err);
             }
-            rawCloudData = data || [];
         }
 
         async function handleAction(itemType) {
@@ -523,25 +521,29 @@
             keyDisplay.innerText = "Генерация ключа через сервер в Ирландии...";
             orderSuccessView.classList.remove('hidden');
 
-            const { data: freshRows } = await supabase.from('vpn_data').select('*').eq('id', countryRow.id);
-            const liveRow = freshRows ? freshRows[0] : null;
+            try {
+                const { data: freshRows } = await supabase.from('vpn_data').select('*').eq('id', countryRow.id);
+                const liveRow = freshRows ? freshRows[0] : null;
 
-            if (liveRow && liveRow.keys && liveRow.keys.length > 0) {
-                let currentKeys = [...liveRow.keys];
-                const issuedKey = currentKeys.shift(); 
+                if (liveRow && liveRow.keys && liveRow.keys.length > 0) {
+                    let currentKeys = [...liveRow.keys];
+                    const issuedKey = currentKeys.shift(); 
 
-                const { error } = await supabase
-                    .from('vpn_data')
-                    .update({ keys: currentKeys })
-                    .eq('id', countryRow.id);
+                    const { error } = await supabase
+                        .from('vpn_data')
+                        .update({ keys: currentKeys })
+                        .eq('id', countryRow.id);
 
-                if (!error) {
-                    keyDisplay.innerText = issuedKey;
+                    if (!error) {
+                        keyDisplay.innerText = issuedKey;
+                    } else {
+                        keyDisplay.innerText = "Ошибка обновления базы данных: " + error.message;
+                    }
                 } else {
-                    keyDisplay.innerText = "Ошибка транзакции базы данных. Попробуйте снова.";
+                    keyDisplay.innerText = "Ключи для этой локации закончились. Администратор скоро добавит новые!";
                 }
-            } else {
-                keyDisplay.innerText = "Ключи для этой локации закончились. Администратор скоро добавит новые!";
+            } catch (err) {
+                keyDisplay.innerText = "Ошибка связи с облаком.";
             }
         }
 
@@ -596,7 +598,7 @@
                 .insert([{ protocol: adminSelectedProtocol, country_name: name, flag: flag, keys: [] }]);
 
             if (error) {
-                alert("Ошибка добавления: " + error.message);
+                alert("Ошибка: " + error.message + ". Проверь, создана ли колонка 'keys' как массив (Array)!");
             } else {
                 nameInput.value = "";
                 flagInput.value = "";
@@ -785,7 +787,8 @@
             }
         }
 
-        fetchDatabase();
+        // Запуск скачивания в безопасном режиме (не ломает скрипт при ошибке сети)
+        fetchDatabase().catch(err => console.error("Облако Supabase недоступно:", err));
     </script>
 </body>
 </html>
