@@ -7,95 +7,44 @@
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
-        body { background: #0f172a; color: white; font-family: sans-serif; display: flex; justify-content: center; padding: 20px; margin: 0; }
-        .card { background: #1e293b; padding: 20px; border-radius: 12px; width: 100%; max-width: 400px; margin-top: 20px; border: 1px solid #334155; }
-        .btn { display: block; width: 100%; padding: 15px; margin: 10px 0; background: #0284c7; border: none; border-radius: 8px; color: white; font-weight: bold; cursor: pointer; text-align: center; }
-        .hidden { display: none !important; }
-        .key-box { background: #0f172a; padding: 15px; border-radius: 8px; word-break: break-all; font-family: monospace; color: #10b981; border: 1px dashed #10b981; }
+        body { background: #0f172a; color: white; font-family: sans-serif; display: flex; justify-content: center; padding: 20px; }
+        .card { background: #1e293b; padding: 20px; border-radius: 12px; width: 100%; max-width: 400px; text-align: center; }
+        .btn { display: block; width: 100%; padding: 15px; margin: 10px 0; background: #0284c7; border: none; border-radius: 8px; color: white; font-weight: bold; cursor: pointer; }
     </style>
 </head>
 <body>
 
-<div id="app">
-    <div id="home-view" class="card">
+    <div class="card">
         <h1>NetVault</h1>
-        <button class="btn" id="btn-vpn">Купить VPN</button>
-        <button class="btn" id="btn-router">Купить Роутер</button>
+        <p>Приватные VPN-серверы</p>
+        <button class="btn" id="btn-router">Покупка роутера</button>
+        <button class="btn" id="btn-vpn">Покупка VPN</button>
     </div>
 
-    <div id="list-view" class="card hidden">
-        <h2 id="view-title">Выберите локацию</h2>
-        <div id="list-container"></div>
-        <button class="btn" style="background:#475569" id="btn-back">Назад</button>
-    </div>
+    <script>
+        // --- 1. ЕДИНСТВЕННОЕ ОБЪЯВЛЕНИЕ SUPABASE ---
+        const supabase = window['@supabase/supabase-js'].createClient(
+            "https://ufpfkvuujlrcgpiquaep.supabase.co", 
+            "sb_publishable_uTITwoPrMgGoZReqJ35x1g_ejOU4eXF"
+        );
 
-    <div id="result-view" class="card hidden">
-        <h2>Ваш ключ готов</h2>
-        <div class="key-box" id="key-display"></div>
-        <button class="btn" id="btn-home">В меню</button>
-    </div>
-</div>
-
-<script>
-    // 1. ЕДИНСТВЕННОЕ объявление Supabase
-    const supabase = window['@supabase/supabase-js'].createClient(
-        "https://ufpfkvuujlrcgpiquaep.supabase.co", 
-        "sb_publishable_uTITwoPrMgGoZReqJ35x1g_ejOU4eXF"
-    );
-
-    const tg = window.Telegram.WebApp;
-    tg.ready();
-    tg.expand();
-
-    // 2. Навигация
-    const views = ['home-view', 'list-view', 'result-view'];
-    function show(viewId) {
-        views.forEach(v => document.getElementById(v).classList.add('hidden'));
-        document.getElementById(viewId).classList.remove('hidden');
-    }
-
-    // 3. Обработчики
-    document.getElementById('btn-vpn').addEventListener('click', async () => {
-        show('list-view');
-        const container = document.getElementById('list-container');
-        container.innerHTML = "Загрузка...";
-        
-        const { data, error } = await supabase.from('vpn_data').select('*');
-        if (error) {
-            container.innerHTML = "Ошибка базы.";
-            return;
+        // --- 2. ФУНКЦИИ (определяем их до того, как используем) ---
+        function handleAction(action) {
+            console.log("Выбрано действие:", action);
+            alert("Вы выбрали: " + action);
         }
-        
-        container.innerHTML = "";
-        data.forEach(item => {
-            const btn = document.createElement('button');
-            btn.className = 'btn';
-            btn.innerText = item.country_name;
-            btn.addEventListener('click', () => issueKey(item));
-            container.appendChild(btn);
-        });
-    });
 
-    async function issueKey(item) {
-        show('result-view');
-        const keyDisplay = document.getElementById('key-display');
-        keyDisplay.innerText = "Генерация...";
-        
-        if (item.keys && item.keys.length > 0) {
-            const keys = [...item.keys];
-            const key = keys.shift();
+        // --- 3. НАЗНАЧЕНИЕ КНОПОК ---
+        // Используем DOMContentLoaded, чтобы кнопки гарантированно существовали
+        document.addEventListener('DOMContentLoaded', () => {
+            document.getElementById('btn-router').addEventListener('click', () => handleAction('Router'));
+            document.getElementById('btn-vpn').addEventListener('click', () => handleAction('VPN'));
             
-            await supabase.from('vpn_data').update({ keys }).eq('id', item.id);
-            keyDisplay.innerText = key;
-        } else {
-            keyDisplay.innerText = "Ключи закончились.";
-        }
-    }
-
-    document.getElementById('btn-back').addEventListener('click', () => show('home-view'));
-    document.getElementById('btn-home').addEventListener('click', () => show('home-view'));
-    document.getElementById('btn-router').addEventListener('click', () => alert("Раздел Роутеров в разработке"));
-
-</script>
+            // Инициализация Telegram Mini App
+            if (window.Telegram && window.Telegram.WebApp) {
+                window.Telegram.WebApp.ready();
+            }
+        });
+    </script>
 </body>
 </html>
