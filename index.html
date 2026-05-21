@@ -2,129 +2,164 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>NetVault Pro</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
-        :root { --primary: #3b82f6; --bg: #0f172a; --card: #1e293b; --text: #f8fafc; --text-muted: #94a3b8; }
-        body { margin: 0; background: var(--bg); color: var(--text); font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; }
-        .app-container { max-width: 500px; margin: 0 auto; padding: 20px; }
-        h1, h2 { margin: 0 0 15px 0; }
-        .card { background: var(--card); border-radius: 20px; padding: 20px; margin-bottom: 15px; border: 1px solid #334155; }
-        .btn { display: block; width: 100%; padding: 16px; border-radius: 12px; border: none; background: var(--primary); color: white; font-weight: 600; cursor: pointer; text-align: center; margin-bottom: 10px; transition: 0.2s; }
-        .btn-sec { background: #334155; }
+        :root { --bg: #0f172a; --card: #1e293b; --accent: #0284c7; --text: #f8fafc; --success: #10b981; }
+        body { background: var(--bg); color: var(--text); font-family: sans-serif; margin: 0; padding-bottom: 50px; }
+        .wrapper { max-width: 450px; margin: 0 auto; padding: 20px; }
+        .section { background: var(--card); border-radius: 16px; padding: 20px; margin-bottom: 20px; border: 1px solid #334155; }
+        .btn { width: 100%; padding: 15px; border-radius: 12px; border: none; background: var(--accent); color: white; font-weight: bold; cursor: pointer; margin-top: 10px; }
+        .btn-sec { background: #475569; }
         .hidden { display: none !important; }
-        .receipt-box { background: white; color: #000; padding: 25px; border-radius: 16px; text-align: center; border: 2px dashed #3b82f6; }
-        input { width: 100%; padding: 12px; border-radius: 8px; border: 1px solid #334155; background: #0f172a; color: white; margin-bottom: 10px; box-sizing: border-box;}
+        .price-tag { color: var(--success); }
     </style>
 </head>
 <body>
 
-<div class="app-container">
-    <div id="view-home">
-        <h1 id="welcome-text">NetVault</h1>
-        <div class="card">
-            <h2>Магазин</h2>
-            <button class="btn" onclick="App.show('view-vpn')">VPN Ключи</button>
-            <button class="btn" onclick="App.show('view-routers')">Роутеры</button>
-            <button class="btn btn-sec" onclick="App.show('view-profile')">Мой профиль</button>
-        </div>
-        <div id="admin-panel-link" class="hidden">
-            <button class="btn" style="background:#dc2626" onclick="App.loadAdmin()">Администрирование</button>
-        </div>
+<div class="wrapper">
+    <div id="view-main" class="section">
+        <h1 style="text-align:center">NetVault Store</h1>
+        <button class="btn" onclick="App.showView('view-vpn-protocols')">Купить VPN</button>
+        <button class="btn" onclick="App.showView('view-routers')">Купить Роутер</button>
+        <button class="btn btn-sec" onclick="App.toggleCart()">Корзина (<span id="cart-count">0</span>)</button>
+        <button class="btn" style="background:transparent; border:1px solid #475569" onclick="App.checkAdminAccess()">Админка</button>
     </div>
 
-    <div id="view-vpn" class="hidden">
-        <h2>VPN Ключи</h2>
-        <div id="vpn-list" class="card"></div>
-        <button class="btn btn-sec" onclick="App.show('view-home')">Назад</button>
+    <div id="view-vpn-protocols" class="section hidden">
+        <h1>Выберите протокол</h1>
+        <button class="btn" onclick="App.selectProtocol('WireGuard', 450)">WireGuard (450₽)</button>
+        <button class="btn" onclick="App.selectProtocol('Amnezia', 450)">Amnezia (450₽)</button>
+        <button class="btn" onclick="App.selectProtocol('Vless', 400)">Vless (400₽)</button>
+        <button class="btn btn-sec" onclick="App.showView('view-main')">Назад</button>
     </div>
 
-    <div id="view-routers" class="hidden">
-        <h2>Роутеры</h2>
-        <div id="router-list" class="card"></div>
-        <button class="btn btn-sec" onclick="App.show('view-home')">Назад</button>
+    <div id="view-vpn-locations" class="section hidden">
+        <h1>Выберите локацию</h1>
+        <div id="location-list"></div>
+        <button class="btn btn-sec" onclick="App.showView('view-vpn-protocols')">Назад</button>
     </div>
 
-    <div id="view-receipt" class="hidden">
-        <h2>Оформление заказа</h2>
-        <div class="receipt-box">
-            <h3 style="margin-top:0">Реквизиты оплаты</h3>
-            <p>Заказ №<span id="rec-id">...</span></p>
-            <p>Перевести на: <b>2200-7020-5664-8004</b></p>
-            <p>Кому: <b>Игорь Дурасов</b></p>
-            <p>Сумма: <b id="rec-sum">...</b> руб.</p>
-            <p style="color:red; font-weight:bold; font-size:0.9rem;">! УКАЖИТЕ НОМЕР ЗАКАЗА В ПЕРЕВОДЕ !</p>
-        </div>
-        <button class="btn" onclick="App.show('view-home')">Вернуться в меню</button>
+    <div id="view-routers" class="section hidden">
+        <h1>Выбор роутера</h1>
+        <div id="router-list"></div>
+        <button class="btn btn-sec" onclick="App.showView('view-main')">Назад</button>
     </div>
 
-    <div id="view-admin" class="hidden">
-        <h2>Админ-панель</h2>
-        <div id="admin-content" class="card"></div>
-        <button class="btn btn-sec" onclick="App.show('view-home')">Закрыть</button>
+    <div id="view-cart" class="section hidden">
+        <h1>Ваш заказ</h1>
+        <div id="cart-list"></div>
+        <input type="text" id="delivery-address" placeholder="Адрес или Telegram" style="width:100%; padding:10px; border-radius:8px; margin-bottom:10px;">
+        <button class="btn" onclick="App.checkout()">Оформить (Оплата 2200-7020-5664-8004)</button>
+        <button class="btn btn-sec" onclick="App.showView('view-main')">Назад</button>
+    </div>
+
+    <div id="view-admin" class="section hidden">
+        <h1>Админка</h1>
+        <div id="admin-orders"></div>
+        <button class="btn btn-sec" onclick="App.showView('view-main')">Выход</button>
     </div>
 </div>
 
 <script>
 const App = {
     db: null,
-    user: null,
-    adminId: 5737961034,
+    cart: [],
+    selectedProtocol: null,
+    botToken: "8681452451:AAG5u9rdggoEChM10yoahJMjmND5N5ajMgg",
+    adminId: 5737961034, // Твой ID
     
+    locations: ['США', 'Германия', 'Нидерланды', 'Турция', 'Польша'],
+    routers: [
+        { name: 'NC-1121', price: 9800 },
+        { name: 'NC-1812', price: 36000 },
+        { name: 'NC-3811', price: 19800 },
+        { name: 'NC-3013', price: 14800 },
+        { name: 'NC-2212 (SIM)', price: 12800 }
+    ],
+
     init: function() {
-        this.db = supabase.createClient("URL_SUPABASE", "KEY_SUPABASE");
+        this.db = supabase.createClient("https://ufpfkvuujlrcgpiquaep.supabase.co", "sb_publishable_uTITwoPrMgGoZReqJ35x1g_ejOU4eXF");
         Telegram.WebApp.ready();
-        this.user = Telegram.WebApp.initDataUnsafe.user;
-        if (this.user?.id === this.adminId) document.getElementById('admin-panel-link').classList.remove('hidden');
-        document.getElementById('welcome-text').innerText = `Привет, ${this.user?.first_name || 'Гость'}`;
         
-        this.renderCatalog();
+        // Рендер роутеров
+        document.getElementById('router-list').innerHTML = this.routers.map(r => 
+            `<button class="btn" onclick="App.addToCart('${r.name}', ${r.price})">${r.name} - ${r.price}₽</button>`
+        ).join('');
+        
+        // Рендер локаций
+        document.getElementById('location-list').innerHTML = this.locations.map(loc => 
+            `<button class="btn" onclick="App.addVPN('${loc}')">${loc}</button>`
+        ).join('');
     },
 
-    show: (id) => {
-        document.querySelectorAll('div[id^="view-"]').forEach(v => v.classList.add('hidden'));
+    showView: function(id) {
+        document.querySelectorAll('.section').forEach(s => s.classList.add('hidden'));
         document.getElementById(id).classList.remove('hidden');
     },
 
-    renderCatalog: () => {
-        const vpns = [{n:'WireGuard',p:450}, {n:'Amnezia',p:450}, {n:'Vless',p:400}];
-        const routers = [{n:'NC-1121',p:9800}, {n:'NC-1812',p:36000}, {n:'NC-3811',p:19800}, {n:'NC-2212 (4G)',p:12800}];
-        
-        document.getElementById('vpn-list').innerHTML = vpns.map(v => `<button class="btn btn-sec" onclick="App.checkout('${v.n}', ${v.p})">${v.n} - ${v.p}₽</button>`).join('');
-        document.getElementById('router-list').innerHTML = routers.map(r => `<button class="btn btn-sec" onclick="App.checkout('${r.n}', ${r.p})">${r.n} - ${r.p}₽</button>`).join('');
+    selectProtocol: function(name, price) {
+        this.selectedProtocol = { name, price };
+        this.showView('view-vpn-locations');
     },
 
-    checkout: async function(name, price) {
-        const { data } = await this.db.from('orders').insert([{
-            user_id: this.user.id, items: name, total_price: price, payment_status: 'pending'
-        }]).select();
-        
-        document.getElementById('rec-id').innerText = data[0].id;
-        document.getElementById('rec-sum').innerText = price;
-        this.show('view-receipt');
+    addVPN: function(loc) {
+        this.addToCart(`${this.selectedProtocol.name} (${loc})`, this.selectedProtocol.price);
+        this.showView('view-main');
+    },
+
+    addToCart: function(name, price) {
+        this.cart.push({name, price});
+        document.getElementById('cart-count').innerText = this.cart.length;
+        alert("Добавлено в корзину!");
+    },
+
+    toggleCart: function() {
+        document.getElementById('cart-list').innerHTML = this.cart.map(i => `<p>${i.name} - ${i.price}₽</p>`).join('');
+        this.showView('view-cart');
+    },
+
+    checkAdminAccess: function() {
+        const userId = Telegram.WebApp.initDataUnsafe.user?.id;
+        if (userId === this.adminId) {
+            this.loadAdmin();
+        } else {
+            alert("Доступ запрещен! Вы не администратор.");
+        }
     },
 
     loadAdmin: async function() {
-        this.show('view-admin');
-        const { data } = await this.db.from('orders').select('*');
-        document.getElementById('admin-content').innerHTML = data.map(o => `
-            <div style="border-bottom:1px solid #334155; padding:10px 0;">
-                <p>Заказ #${o.id} | ${o.total_price}₽ | <b>${o.payment_status}</b></p>
-                <input type="date" id="date-${o.id}">
-                <button onclick="App.confirmOrder(${o.id})">Оплачено</button>
+        this.showView('view-admin');
+        const { data } = await this.db.from('orders').select('*').order('created_at', { ascending: false });
+        document.getElementById('admin-orders').innerHTML = data.map(o => `
+            <div style="border:1px solid #475569; padding:10px; margin-top:10px;">
+                Заказ #${o.id} | ${o.total_price}₽ <br>
+                Статус: <b>${o.payment_status}</b> <br>
+                <button onclick="App.confirm(${o.id})">Подтвердить</button>
             </div>
         `).join('');
     },
 
-    confirmOrder: async function(id) {
-        const date = document.getElementById(`date-${id}`).value;
-        await this.db.from('user_keys').insert([{ order_id: id, exp_date: date, user_id: this.user.id }]);
-        alert("Подписка создана!");
+    confirm: async function(id) {
+        await this.db.from('orders').update({ payment_status: 'paid' }).eq('id', id);
+        this.loadAdmin();
+    },
+
+    checkout: async function() {
+        const addr = document.getElementById('delivery-address').value;
+        if(!addr) return alert("Введите адрес!");
+        
+        const total = this.cart.reduce((a, b) => a + b.price, 0);
+        await this.db.from('orders').insert([{ items: JSON.stringify(this.cart), total_price: total, address: addr, payment_status: 'pending' }]);
+        
+        alert("Заказ оформлен!");
+        this.cart = [];
+        this.showView('view-main');
     }
 };
-App.init();
+window.addEventListener('DOMContentLoaded', () => App.init());
 </script>
 </body>
 </html>
