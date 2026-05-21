@@ -7,72 +7,66 @@
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
-        body { background-color: #0f172a; color: white; font-family: sans-serif; margin: 0; padding: 20px; display: flex; justify-content: center; }
-        .card { background: #1e293b; padding: 20px; border-radius: 12px; width: 100%; max-width: 400px; margin-top: 20px; }
-        .btn { display: block; width: 100%; padding: 15px; margin: 10px 0; background: #0284c7; border: none; border-radius: 8px; color: white; font-weight: bold; cursor: pointer; text-align: center; }
+        body { background: #0f172a; color: #fff; font-family: sans-serif; display: flex; justify-content: center; padding: 20px; margin: 0; }
+        .container { width: 100%; max-width: 400px; }
+        .card { background: #1e293b; padding: 20px; border-radius: 12px; margin-bottom: 20px; border: 1px solid #334155; }
+        .btn { width: 100%; padding: 15px; background: #0284c7; color: white; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; display: block; margin-top: 10px; text-align: center; }
+        .btn:hover { background: #0369a1; }
         .hidden { display: none !important; }
+        h1 { font-size: 1.5rem; text-align: center; color: #38bdf8; }
     </style>
 </head>
 <body>
 
-    <div id="app">
-        <div id="home-view" class="card">
-            <h1>NetVault</h1>
-            <button class="btn" id="btn-vpn">Купить VPN</button>
-            <button class="btn" id="btn-router">Роутеры</button>
-        </div>
-
-        <div id="vpn-view" class="card hidden">
-            <h2 id="view-title">Выбор</h2>
-            <div id="list-container"></div>
-            <button class="btn" id="btn-back">Назад</button>
-        </div>
+<div class="container">
+    <div id="home-screen" class="card">
+        <h1>NetVault</h1>
+        <button id="btn-vpn" class="btn">Купить VPN</button>
+        <button id="btn-router" class="btn">Купить Роутер</button>
     </div>
 
-    <script>
-        // Инициализация Supabase
-        const supabase = window['@supabase/supabase-js'].createClient(
-            "https://ufpfkvuujlrcgpiquaep.supabase.co", 
-            "sb_publishable_uTITwoPrMgGoZReqJ35x1g_ejOU4eXF"
-        );
+    <div id="vpn-screen" class="card hidden">
+        <h1>Выбор VPN</h1>
+        <button id="btn-back" class="btn" style="background:#475569">Назад</button>
+    </div>
+</div>
 
-        // Инициализация Telegram WebApp
-        const tg = window.Telegram.WebApp;
-        tg.ready();
-        tg.expand();
+<script>
+    // 1. Инициализация Supabase (СТРОГО ОДИН РАЗ)
+    const supabase = window['@supabase/supabase-js'].createClient(
+        "https://ufpfkvuujlrcgpiquaep.supabase.co", 
+        "sb_publishable_uTITwoPrMgGoZReqJ35x1g_ejOU4eXF"
+    );
 
-        // DOM элементы
-        const homeView = document.getElementById('home-view');
-        const vpnView = document.getElementById('vpn-view');
-        
-        // --- ОБРАБОТЧИКИ (Слушатели событий) ---
-        document.getElementById('btn-vpn').addEventListener('click', () => {
-            console.log("Кнопка VPN нажата");
-            showView('vpn-view');
-        });
+    // 2. Инициализация Telegram
+    const tg = window.Telegram.WebApp;
+    tg.ready();
 
-        document.getElementById('btn-back').addEventListener('click', () => {
-            showView('home-view');
-        });
+    // 3. Логика кнопок
+    const homeScreen = document.getElementById('home-screen');
+    const vpnScreen = document.getElementById('vpn-screen');
 
-        function showView(viewId) {
-            homeView.classList.add('hidden');
-            vpnView.classList.add('hidden');
-            document.getElementById(viewId).classList.remove('hidden');
-        }
+    document.getElementById('btn-vpn').addEventListener('click', function() {
+        console.log("Кнопка VPN нажата");
+        homeScreen.classList.add('hidden');
+        vpnScreen.classList.remove('hidden');
+    });
 
-        // Тест связи с базой
-        async function testDb() {
-            try {
-                const { data, error } = await supabase.from('vpn_data').select('*');
-                if (error) console.error("Ошибка Supabase:", error);
-                else console.log("Данные получены:", data);
-            } catch (e) {
-                console.error("Ошибка сети:", e);
-            }
-        }
-        
-        testDb();
-    </script>
+    document.getElementById('btn-back').addEventListener('click', function() {
+        homeScreen.classList.remove('hidden');
+        vpnScreen.classList.add('hidden');
+    });
+
+    document.getElementById('btn-router').addEventListener('click', function() {
+        alert("Раздел Роутеров в разработке");
+    });
+
+    // 4. Проверка связи с базой (вывод в консоль)
+    supabase.from('vpn_data').select('*').then(res => {
+        if(res.error) console.error("Ошибка базы:", res.error);
+        else console.log("База данных подключена успешно!");
+    });
+</script>
+
 </body>
 </html>
