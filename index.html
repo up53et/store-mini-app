@@ -67,49 +67,12 @@
             background-color: #334155;
         }
 
-        /* Кнопка ТЕЛЕГРАМ */
-        .btn-tg {
+        /* Контейнер для официального виджета */
+        .tg-widget-container {
             display: flex;
-            align-items: center;
             justify-content: center;
-            gap: 10px;
-            background-color: #24A1DE;
-            color: white;
-            border: none;
-            border-radius: 8px;
-            padding: 14px;
-            width: 100%;
-            font-size: 1.05rem;
-            font-weight: 600;
-            cursor: pointer;
-            transition: background-color 0.2s, transform 0.1s;
-        }
-        .btn-tg:hover {
-            background-color: #1d82b3;
-        }
-        .btn-tg:active {
-            transform: scale(0.98);
-        }
-        .btn-tg svg {
-            width: 24px;
-            height: 24px;
-            fill: white;
-        }
-
-        /* Прелоадер загрузки */
-        .loader {
-            border: 4px solid #334155;
-            border-top: 4px solid #38bdf8;
-            border-radius: 50%;
-            width: 40px;
-            height: 40px;
-            animation: spin 1s linear infinite;
-            margin: 20px auto;
-        }
-
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
+            margin-top: 20px;
+            min-height: 40px;
         }
 
         .hidden {
@@ -124,9 +87,8 @@
         <div class="logo-icon">🌐</div>
         <h1>Jerk Store</h1>
         
-        <div id="user-status" style="margin-bottom: 20px; color: #10b981; font-weight: bold;" class="hidden">
-            🔑 Вы авторизованы через Telegram!
-        </div>
+        <!-- Сюда подставится имя пользователя после входа -->
+        <div id="user-status" style="margin-bottom: 20px; color: #10b981; font-weight: bold;" class="hidden"></div>
 
         <button class="btn" onclick="handleAction('роутер')">Покупка роутера</button>
         <button class="btn btn-secondary" onclick="handleAction('VPN')">Покупка VPN</button>
@@ -135,21 +97,18 @@
     <!-- ЭКРАН 2: Вход через Telegram -->
     <div id="auth-view" class="card hidden">
         <div class="logo-icon">🔐</div>
-        <h1 id="auth-title">Вход на сайт</h1>
-        <p style="color: #94a3b8; margin-bottom: 25px; font-size: 0.95rem;">Для продолжения необходимо подтвердить профиль через мессенджер.</p>
+        <h1>Вход через Telegram</h1>
+        <p style="color: #94a3b8; margin-bottom: 25px; font-size: 0.95rem;">Нажмите на кнопку ниже, чтобы войти с помощью своего Telegram-аккаунта.</p>
         
-        <!-- Кнопка войти -->
-        <button class="btn-tg" id="tg-btn" onclick="startTgAuth()">
-            <svg viewBox="0 0 24 24">
-                <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm4.64 6.8c-.15 1.58-.8 5.42-1.13 7.19-.14.75-.42 1-.68 1.03-.58.05-1.02-.38-1.58-.75-.88-.58-1.38-.94-2.23-1.5-.99-.65-.35-1.01.22-1.59.15-.15 2.71-2.48 2.76-2.69.01-.03.01-.14-.07-.2-.08-.06-.19-.04-.27-.02-.12.02-1.96 1.25-5.54 3.66-.52.36-1 .53-1.42.52-.47-.01-1.37-.26-2.03-.48-.82-.27-1.47-.42-1.42-.88.03-.24.35-.49.97-.74 3.79-1.65 6.32-2.74 7.57-3.27 3.61-1.5 4.36-1.76 4.85-1.77.11 0 .35.03.5.16.13.12.16.29.18.41.02.11.01.3-.01.37z"/>
-            </svg>
-            Войти через Telegram
-        </button>
-
-        <!-- Блок анимации загрузки (скрыт по умолчанию) -->
-        <div id="loading-block" class="hidden">
-            <div class="loader"></div>
-            <p style="color: #38bdf8; font-size: 0.9rem;">Подключение к Telegram API...</p>
+        <div class="tg-widget-container">
+            <!-- Официальный виджет Telegram для @NettVault_bot -->
+            <script async src="https://telegram.org/js/telegram-widget.js?22" 
+                data-telegram-login="NettVault_bot" 
+                data-size="large" 
+                data-radius="8"
+                data-onauth="onTelegramAuth(user)" 
+                data-request-access="write">
+            </script>
         </div>
     </div>
 
@@ -160,10 +119,8 @@
         const homeView = document.getElementById('home-view');
         const authView = document.getElementById('auth-view');
         const userStatus = document.getElementById('user-status');
-        const tgBtn = document.getElementById('tg-btn');
-        const loadingBlock = document.getElementById('loading-block');
 
-        // Клик на покупку
+        // Проверка при нажатии на кнопки
         function handleAction(itemType) {
             if (isLoggedIn) {
                 alert(`Переходим к оформлению заказа: ${itemType}`);
@@ -174,33 +131,22 @@
             }
         }
 
-        // Логика имитации авторизации Telegram
-        function startTgAuth() {
-            // Прячем кнопку, показываем лоадер крутилку
-            tgBtn.classList.add('hidden');
-            loadingBlock.classList.remove('hidden');
+        // Эта функция автоматически сработает, когда пользователь успешно зайдет через Telegram
+        function onTelegramAuth(user) {
+            isLoggedIn = true;
+            
+            // Прячем окно входа, показываем главное меню
+            authView.classList.add('hidden');
+            homeView.classList.remove('hidden');
+            
+            // Выводим имя пользователя из Telegram
+            userStatus.classList.remove('hidden');
+            userStatus.innerText = `👋 Привет, ${user.first_name}! Авторизация успешна.`;
 
-            // Имитируем задержку ответа от серверов Telegram в 2 секунды
+            // Выводим сообщение о покупке
             setTimeout(() => {
-                isLoggedIn = true;
-                
-                // Возвращаемся на главный экран
-                authView.classList.add('hidden');
-                homeView.classList.remove('hidden');
-                
-                // Показываем плашку успешного входа
-                userStatus.classList.remove('hidden');
-
-                // Сбрасываем состояние окна авторизации на будущее
-                tgBtn.classList.remove('hidden');
-                loadingBlock.classList.add('hidden');
-
-                // Сообщение для пользователя
-                setTimeout(() => {
-                    alert(`Авторизация через Telegram успешна! Теперь вы можете оформить: ${pendingAction}`);
-                }, 400);
-
-            }, 2000); // 2000 миллисекунд = 2 секунды
+                alert(`${user.first_name}, вы можете продолжить покупку: ${pendingAction}`);
+            }, 300);
         }
     </script>
 
