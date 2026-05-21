@@ -40,7 +40,7 @@
             justify-content: center;
             align-items: center;
             font-size: 20px;
-            overflow: hidden;
+            position: relative;
             transition: transform 0.2s;
         }
         .avatar:hover {
@@ -50,6 +50,21 @@
             width: 100%;
             height: 100%;
             object-fit: cover;
+            border-radius: 50%;
+        }
+        
+        /* Корона админа */
+        .admin-badge {
+            position: absolute;
+            top: -8px;
+            right: -8px;
+            font-size: 16px;
+            background: #eab308;
+            border-radius: 50%;
+            padding: 2px;
+            display: none;
+            line-height: 1;
+            z-index: 110;
         }
 
         .profile-dropdown {
@@ -59,7 +74,7 @@
             background: #1e293b;
             border: 1px solid #334155;
             border-radius: 8px;
-            width: 150px;
+            width: 160px;
             box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.3);
             display: none;
             flex-direction: column;
@@ -79,6 +94,12 @@
             background: #334155;
             color: #38bdf8;
         }
+        .dropdown-item.admin-btn {
+            color: #eab308;
+            font-weight: bold;
+            border-bottom: 1px solid #334155;
+            display: none;
+        }
         .dropdown-item.logout {
             color: #ef4444;
             border-top: 1px solid #334155;
@@ -94,7 +115,7 @@
             border-radius: 16px;
             box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.3);
             text-align: center;
-            max-width: 400px;
+            max-width: 420px;
             width: 100%;
             border: 1px solid #334155;
         }
@@ -143,6 +164,22 @@
             background-color: #334155;
         }
 
+        /* Кнопка с флагом */
+        .btn-flag {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+        }
+        .flag-nl {
+            width: 24px;
+            height: 16px;
+            display: inline-block;
+            background: linear-gradient(to bottom, #AE1C28 33.3%, #FFFFFF 33.3%, #FFFFFF 66.6%, #21468B 66.6%);
+            border-radius: 2px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.3);
+        }
+
         .tg-widget-container {
             display: flex;
             justify-content: center;
@@ -150,7 +187,6 @@
             min-height: 40px;
         }
 
-        /* Текст успешного заказа */
         .order-box {
             background: #0f172a;
             border: 1px dashed #10b981;
@@ -158,6 +194,22 @@
             border-radius: 8px;
             margin-top: 15px;
             text-align: left;
+        }
+
+        /* Стиль таблицы для Админки */
+        .admin-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 15px;
+            font-size: 0.85rem;
+            text-align: left;
+        }
+        .admin-table th, .admin-table td {
+            padding: 8px;
+            border-bottom: 1px solid #334155;
+        }
+        .admin-table th {
+            color: #38bdf8;
         }
 
         .show {
@@ -174,8 +226,10 @@
     <div class="profile-container">
         <div class="avatar" id="avatar-btn" onclick="handleAvatarClick()">
             <span id="avatar-placeholder">👤</span>
+            <div class="admin-badge" id="admin-crown">👑</div>
         </div>
         <div class="profile-dropdown" id="profile-menu">
+            <button class="dropdown-item admin-btn" id="admin-dropdown-link" onclick="openAdminPanel()">👑 Админка</button>
             <button class="dropdown-item" onclick="openSettings()">Настройки</button>
             <button class="dropdown-item logout" onclick="logout()">Выйти</button>
         </div>
@@ -216,25 +270,27 @@
         <h1>Выбор протокола</h1>
         <p class="subtitle">Какой протокол VPN вы хотите использовать?</p>
         
-        <button class="btn" onclick="selectProtocol('Vless')">Vless (Максимальный обход блокировок)</button>
-        <button class="btn" onclick="selectProtocol('AmneziaWG')">AmneziaWG (Устойчивый WireGuard)</button>
-        <button class="btn" onclick="selectProtocol('WireGuard')">WireGuard (Высокая скорость)</button>
+        <button class="btn" onclick="selectProtocol('Vless')">Vless</button>
+        <button class="btn" onclick="selectProtocol('AmneziaWG')">AmneziaWG</button>
+        <button class="btn" onclick="selectProtocol('WireGuard')">WireGuard</button>
         
         <button class="btn btn-secondary" style="margin-top: 10px;" onclick="goBackToHome()">Назад</button>
     </div>
 
-    <!-- ЭКРАН 4: Выбор локации сервера -->
+    <!-- ЭКРАН 4: Выбор локации -->
     <div id="vpn-country-view" class="card hidden">
         <div class="logo-icon">🌍</div>
         <h1>Выбор локации</h1>
         <p class="subtitle">Выберите доступную страну для вашего сервера:</p>
         
-        <button class="btn" onclick="selectCountry('Нидерланды 🇳🇱')">Нидерланды 🇳🇱</button>
+        <button class="btn btn-flag" onclick="selectCountry('Нидерланды')">
+            <span class="flag-nl"></span> Нидерланды
+        </button>
         
         <button class="btn btn-secondary" style="margin-top: 10px;" onclick="goBackToProtocol()">Назад</button>
     </div>
 
-    <!-- ЭКРАН 5: Чек / Успешное оформление -->
+    <!-- ЭКРАН 5: Чек -->
     <div id="order-success-view" class="card hidden">
         <div class="logo-icon">🎉</div>
         <h1 style="color: #10b981;">Заказ сформирован!</h1>
@@ -250,27 +306,72 @@
         <button class="btn" style="margin-top: 25px;" onclick="goBackToHome()">В главное меню</button>
     </div>
 
+    <!-- ЭКРАН 6: АДМИН-ПАНЕЛЬ -->
+    <div id="admin-view" class="card hidden">
+        <div class="logo-icon">👑</div>
+        <h1 style="color: #eab308;">Панель администратора</h1>
+        <p class="subtitle" style="margin-bottom: 15px;">Управление заказами NetVault</p>
+        
+        <div style="display: flex; justify-content: space-around; background: #0f172a; padding: 10px; border-radius: 8px; margin-bottom: 15px; font-size: 0.9rem;">
+            <div>Заказов: <strong style="color: #38bdf8;">3</strong></div>
+            <div>Выручка: <strong style="color: #10b981;">0$</strong></div>
+        </div>
+
+        <p style="text-align: left; font-weight: bold; color: #94a3b8; font-size: 0.9rem;">Последние активности:</p>
+        <table class="admin-table">
+            <thead>
+                <tr>
+                    <th>Клиент</th>
+                    <th>Услуга</th>
+                    <th>Конфиг</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>Иван</td>
+                    <td>VPN</td>
+                    <td>Vless (NL)</td>
+                </tr>
+                <tr>
+                    <td>Alex_99</td>
+                    <td>VPN</td>
+                    <td>WireGuard (NL)</td>
+                </tr>
+                <tr>
+                    <td>Тест_Пользователь</td>
+                    <td>Роутер</td>
+                    <td>Запрос инфо</td>
+                </tr>
+            </tbody>
+        </table>
+
+        <button class="btn btn-secondary" style="margin-top: 25px;" onclick="goBackToHome()">Выйти из админки</button>
+    </div>
+
 
     <script>
+        // Твой персональный Telegram ID зашит в систему:
+        const ADMIN_IDS = [5737961034]; 
+
         let isLoggedIn = false;
+        let isAdmin = false;
         let pendingAction = "";
         
-        // Переменные для конфигурации заказа
         let selectedProtocolName = "";
         let selectedCountryName = "";
 
-        // Ссылки на экраны
         const homeView = document.getElementById('home-view');
         const authView = document.getElementById('auth-view');
         const vpnProtocolView = document.getElementById('vpn-protocol-view');
         const vpnCountryView = document.getElementById('vpn-country-view');
         const orderSuccessView = document.getElementById('order-success-view');
+        const adminView = document.getElementById('admin-view');
         
         const userStatus = document.getElementById('user-status');
         const avatarBtn = document.getElementById('avatar-btn');
         const profileMenu = document.getElementById('profile-menu');
+        const adminDropdownLink = document.getElementById('admin-dropdown-link');
 
-        // Логика нажатия главных кнопок меню
         function handleAction(itemType) {
             if (isLoggedIn) {
                 if (itemType === 'vpn') {
@@ -284,7 +385,6 @@
             }
         }
 
-        // Переходы по экранам VPN
         function openProtocolScreen() {
             hideAllViews();
             vpnProtocolView.classList.remove('hidden');
@@ -300,14 +400,18 @@
             selectedCountryName = country;
             hideAllViews();
             
-            // Заполняем финальный чек данными
             document.getElementById('summary-protocol').innerText = selectedProtocolName;
             document.getElementById('summary-country').innerText = selectedCountryName;
             
             orderSuccessView.classList.remove('hidden');
         }
 
-        // Кнопки возврата назад
+        function openAdminPanel() {
+            hideAllViews();
+            adminView.classList.remove('hidden');
+            profileMenu.classList.remove('show');
+        }
+
         function goBackToHome() {
             hideAllViews();
             homeView.classList.remove('hidden');
@@ -330,9 +434,9 @@
             vpnProtocolView.classList.add('hidden');
             vpnCountryView.classList.add('hidden');
             orderSuccessView.classList.add('hidden');
+            adminView.classList.add('hidden');
         }
 
-        // Клик по аватарке профиля
         function handleAvatarClick() {
             if (!isLoggedIn) {
                 openAuthScreen();
@@ -341,20 +445,33 @@
             }
         }
 
-        // Успешная авторизация виджета Telegram
+        // Обработка успешного входа через Telegram
         function onTelegramAuth(user) {
             isLoggedIn = true;
             
             userStatus.classList.remove('hidden');
             userStatus.innerText = `👋 Привет, ${user.first_name}!`;
 
+            // Отрисовываем аватарку
             if (user.photo_url) {
-                avatarBtn.innerHTML = `<img src="${user.photo_url}" alt="Avatar">`;
+                avatarBtn.innerHTML = `<img src="${user.photo_url}" alt="Avatar"><div class="admin-badge" id="admin-crown">👑</div>`;
             } else {
-                avatarBtn.innerHTML = `<span>😎</span>`;
+                avatarBtn.innerHTML = `<span>😎</span><div class="admin-badge" id="admin-crown">👑</div>`;
             }
 
-            // Направляем юзера туда, куда он шёл до авторизации
+            const currentCrown = document.getElementById('admin-crown');
+
+            // Проверяем, совпадает ли ID пользователя с твоим ID
+            if (ADMIN_IDS.includes(user.id)) {
+                isAdmin = true;
+                currentCrown.style.display = 'block';
+                adminDropdownLink.style.display = 'block';
+            } else {
+                isAdmin = false;
+                currentCrown.style.display = 'none';
+                adminDropdownLink.style.display = 'none';
+            }
+
             if (pendingAction === 'vpn') {
                 openProtocolScreen();
             } else {
@@ -370,8 +487,10 @@
 
         function logout() {
             isLoggedIn = false;
+            isAdmin = false;
             userStatus.classList.add('hidden');
-            avatarBtn.innerHTML = `<span id="avatar-placeholder">👤</span>`;
+            avatarBtn.innerHTML = `<span id="avatar-placeholder">👤</span><div class="admin-badge" id="admin-crown">👑</div>`;
+            adminDropdownLink.style.display = 'none';
             profileMenu.classList.remove('show');
             goBackToHome();
             alert("Вы вышли из системы.");
