@@ -305,6 +305,43 @@ const App = {
             this.currentOrder.totalPrice = this.currentOrder.basePrice + (subPrice * months);
         }
 
+        checkout: async function() {
+        const tg = document.getElementById('client-tg').value.trim();
+        const address = document.getElementById('delivery-address').value.trim();
+
+        if (!tg) return alert("Пожалуйста, укажите ваш Telegram!");
+        if (this.currentOrder.type === 'router' && !address) return alert("Пожалуйста, укажите адрес доставки!");
+
+        const itemDescription = this.currentOrder.type === 'vpn'
+            ? `VPN ${this.currentOrder.productName} (${this.currentOrder.location}), Подписка: ${this.currentOrder.months} мес.`
+            : `Роутер ${this.currentOrder.productName}, Подписка: ${this.currentOrder.months} мес.`;
+
+        const { data, error } = await this.db.from('orders').insert([{
+            items: itemDescription,
+            total_price: this.currentOrder.totalPrice,
+            address: this.currentOrder.type === 'router' ? address : 'Цифровой товар',
+            telegram: tg,
+            payment_status: 'pending',
+            valid_until: this.currentOrder.validUntil
+        }]).select();
+
+        if (error) return alert("Ошибка: " + error.message);
+
+        try {
+            await fetch('/api/send-message', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ 
+                    text: `🔔 Новый заказ! \nКлиент: ${tg} \nТовар: ${itemDescription} \nСумма: ${this.currentOrder.totalPrice}₽` 
+                })
+            });
+        } catch (e) {
+            console.error("Ошибка уведомления:", e);
+        }
+
+        alert("Заказ оформлен! Ожидайте подтверждения.");
+        this.showView('view-main');
+    },
         // Вычисляем дату окончания
         let d = new Date();
         d.setMonth(d.getMonth() + months);
