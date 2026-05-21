@@ -412,13 +412,8 @@
         const SUPABASE_URL = "https://ufpfkvuujlrcgpiquaep.supabase.co"; 
         const SUPABASE_KEY = "sb_publishable_uTITwoPrMgGoZReqJ35x1g_ejOU4eXF"; 
 
-        // Безопасная инициализация клиента
-        let supabase = null;
-        try {
-            supabase = window['@supabase/supabase-js'].createClient(SUPABASE_URL, SUPABASE_KEY);
-        } catch(e) {
-            console.error("Критическая ошибка подключения библиотеки Supabase:", e);
-        }
+        // Инициализируем клиент Supabase ОДИН раз
+        const supabase = window['@supabase/supabase-js'].createClient(SUPABASE_URL, SUPABASE_KEY);
 
         const ADMIN_IDS = [5737961034]; 
 
@@ -450,9 +445,8 @@
         const profileMenu = document.getElementById('profile-menu');
         const adminDropdownLink = document.getElementById('admin-dropdown-link');
 
-        // Безопасное скачивание базы без зависания интерфейса
+        // Скачивание базы без зависания интерфейса
         async function fetchDatabase() {
-            if (!supabase) return;
             try {
                 const { data, error } = await supabase.from('vpn_data').select('*');
                 if (error) {
@@ -598,7 +592,7 @@
                 .insert([{ protocol: adminSelectedProtocol, country_name: name, flag: flag, keys: [] }]);
 
             if (error) {
-                alert("Ошибка: " + error.message + ". Проверь, создана ли колонка 'keys' как массив (Array)!");
+                alert("Ошибка: " + error.message + ". Проверь, отключен ли RLS!");
             } else {
                 nameInput.value = "";
                 flagInput.value = "";
@@ -787,7 +781,7 @@
             }
         }
 
-        // Запуск скачивания в безопасном режиме (не ломает скрипт при ошибке сети)
+        // Запуск первого скачивания базы данных
         fetchDatabase().catch(err => console.error("Облако Supabase недоступно:", err));
     </script>
 </body>
