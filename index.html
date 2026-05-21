@@ -115,7 +115,7 @@
             border-radius: 16px;
             box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.3);
             text-align: center;
-            max-width: 420px;
+            max-width: 460px;
             width: 100%;
             border: 1px solid #334155;
         }
@@ -163,6 +163,17 @@
         .btn-secondary:hover {
             background-color: #334155;
         }
+        .btn-danger {
+            background-color: #ef4444;
+            padding: 5px 10px;
+            font-size: 0.8rem;
+            width: auto;
+            display: inline-block;
+            margin: 0;
+        }
+        .btn-danger:hover {
+            background-color: #dc2626;
+        }
 
         /* Кнопка с флагом */
         .btn-flag {
@@ -170,14 +181,6 @@
             align-items: center;
             justify-content: center;
             gap: 12px;
-        }
-        .flag-nl {
-            width: 24px;
-            height: 16px;
-            display: inline-block;
-            background: linear-gradient(to bottom, #AE1C28 33.3%, #FFFFFF 33.3%, #FFFFFF 66.6%, #21468B 66.6%);
-            border-radius: 2px;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.3);
         }
 
         .tg-widget-container {
@@ -195,21 +198,63 @@
             margin-top: 15px;
             text-align: left;
         }
-
-        /* Стиль таблицы для Админки */
-        .admin-table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-top: 15px;
+        .key-display {
+            background: #1e293b;
+            padding: 10px;
+            border-radius: 6px;
+            word-break: break-all;
+            font-family: monospace;
             font-size: 0.85rem;
+            color: #10b981;
+            margin-top: 10px;
+            border: 1px solid #334155;
+        }
+
+        /* Разделы админки */
+        .admin-section {
+            background: #0f172a;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
             text-align: left;
         }
-        .admin-table th, .admin-table td {
-            padding: 8px;
-            border-bottom: 1px solid #334155;
-        }
-        .admin-table th {
+        .admin-section h3 {
+            font-size: 1rem;
             color: #38bdf8;
+            margin-bottom: 10px;
+            border-bottom: 1px solid #334155;
+            padding-bottom: 5px;
+        }
+        .admin-input-group {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 10px;
+        }
+        .admin-input {
+            flex: 1;
+            padding: 8px;
+            background: #1e293b;
+            border: 1px solid #334155;
+            border-radius: 6px;
+            color: white;
+            font-size: 0.9rem;
+        }
+        .admin-input:focus {
+            outline: none;
+            border-color: #38bdf8;
+        }
+        .admin-list {
+            list-style: none;
+            max-height: 150px;
+            overflow-y: auto;
+        }
+        .admin-list li {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 6px 0;
+            border-bottom: 1px solid #1e293b;
+            font-size: 0.9rem;
         }
 
         .show {
@@ -283,14 +328,13 @@
         <h1>Выбор локации</h1>
         <p class="subtitle">Выберите доступную страну для вашего сервера:</p>
         
-        <button class="btn btn-flag" onclick="selectCountry('Нидерланды')">
-            <span class="flag-nl"></span> Нидерланды
-        </button>
+        <!-- Сюда динамически рендерятся страны из админки -->
+        <div id="countries-list-user"></div>
         
         <button class="btn btn-secondary" style="margin-top: 10px;" onclick="goBackToProtocol()">Назад</button>
     </div>
 
-    <!-- ЭКРАН 5: Чек -->
+    <!-- ЭКРАН 5: Чек и выдача ключа -->
     <div id="order-success-view" class="card hidden">
         <div class="logo-icon">🎉</div>
         <h1 style="color: #10b981;">Заказ сформирован!</h1>
@@ -301,51 +345,42 @@
             <p>• Услуга: <strong>Приватный VPN</strong></p>
             <p>• Протокол: <strong id="summary-protocol">-</strong></p>
             <p>• Локация: <strong id="summary-country">-</strong></p>
+            
+            <p style="color: #eab308; margin-top: 15px; font-weight: bold;">Ваш ключ доступа:</p>
+            <div class="key-display" id="user-vpn-key">Ключи закончились, обратитесь в поддержку</div>
         </div>
 
         <button class="btn" style="margin-top: 25px;" onclick="goBackToHome()">В главное меню</button>
     </div>
 
     <!-- ЭКРАН 6: АДМИН-ПАНЕЛЬ -->
-    <div id="admin-view" class="card hidden">
+    <div id="admin-view" class="card hidden" style="max-width: 550px;">
         <div class="logo-icon">👑</div>
         <h1 style="color: #eab308;">Панель администратора</h1>
-        <p class="subtitle" style="margin-bottom: 15px;">Управление заказами NetVault</p>
+        <p class="subtitle" style="margin-bottom: 20px;">Управление контентом NetVault</p>
         
-        <div style="display: flex; justify-content: space-around; background: #0f172a; padding: 10px; border-radius: 8px; margin-bottom: 15px; font-size: 0.9rem;">
-            <div>Заказов: <strong style="color: #38bdf8;">3</strong></div>
-            <div>Выручка: <strong style="color: #10b981;">0$</strong></div>
+        <!-- Управление странами -->
+        <div class="admin-section">
+            <h3>🌍 Управление странами</h3>
+            <div class="admin-input-group">
+                <input type="text" id="new-country-name" class="admin-input" placeholder="Например: Германия">
+                <input type="text" id="new-country-flag" class="admin-input" placeholder="Эмодзи флага: 🇩🇪" style="max-width: 100px;">
+                <button class="btn" style="margin:0; width:auto; padding:8px 15px;" onclick="addCountry()">+</button>
+            </div>
+            <ul class="admin-list" id="admin-countries-list"></ul>
         </div>
 
-        <p style="text-align: left; font-weight: bold; color: #94a3b8; font-size: 0.9rem;">Последние активности:</p>
-        <table class="admin-table">
-            <thead>
-                <tr>
-                    <th>Клиент</th>
-                    <th>Услуга</th>
-                    <th>Конфиг</th>
-                </tr>
-            </thead>
-            <tbody>
-                <tr>
-                    <td>Иван</td>
-                    <td>VPN</td>
-                    <td>Vless (NL)</td>
-                </tr>
-                <tr>
-                    <td>Alex_99</td>
-                    <td>VPN</td>
-                    <td>WireGuard (NL)</td>
-                </tr>
-                <tr>
-                    <td>Тест_Пользователь</td>
-                    <td>Роутер</td>
-                    <td>Запрос инфо</td>
-                </tr>
-            </tbody>
-        </table>
+        <!-- Управление ключами -->
+        <div class="admin-section">
+            <h3>🔑 Пул VPN ключей</h3>
+            <div class="admin-input-group">
+                <input type="text" id="new-vpn-key" class="admin-input" placeholder="Вставьте vless://... или конфиг">
+                <button class="btn" style="margin:0; width:auto; padding:8px 15px;" onclick="addVpnKey()">+</button>
+            </div>
+            <ul class="admin-list" id="admin-keys-list"></ul>
+        </div>
 
-        <button class="btn btn-secondary" style="margin-top: 25px;" onclick="goBackToHome()">Выйти из админки</button>
+        <button class="btn btn-secondary" style="margin-top: 10px;" onclick="goBackToHome()">Выйти из админки</button>
     </div>
 
 
@@ -359,6 +394,20 @@
         
         let selectedProtocolName = "";
         let selectedCountryName = "";
+
+        // Базовые данные по умолчанию, если LocalStorage пустой
+        const defaultCountries = [
+            { id: 1, name: "Нидерланды", flag: "🇳🇱" },
+            { id: 2, name: "Франция", flag: "🇫🇷" }
+        ];
+        const defaultKeys = [
+            "vless://93b9b4d1-example-netvault-nl",
+            "vless://e8a2a1c0-example-netvault-fr"
+        ];
+
+        // Загрузка данных из LocalStorage или установка дефолтных
+        let countries = JSON.parse(localStorage.getItem('nv_countries')) || defaultCountries;
+        let vpnKeys = JSON.parse(localStorage.getItem('nv_keys')) || defaultKeys;
 
         const homeView = document.getElementById('home-view');
         const authView = document.getElementById('auth-view');
@@ -393,7 +442,27 @@
         function selectProtocol(protocol) {
             selectedProtocolName = protocol;
             hideAllViews();
+            renderUserCountries(); // Строим список стран на основе актуальной админки
             vpnCountryView.classList.remove('hidden');
+        }
+
+        // Рендер стран для обычного пользователя
+        function renderUserCountries() {
+            const container = document.getElementById('countries-list-user');
+            container.innerHTML = "";
+            
+            if (countries.length === 0) {
+                container.innerHTML = "<p class='subtitle'>Нет доступных локаций.</p>";
+                return;
+            }
+
+            countries.forEach(country => {
+                const btn = document.createElement('button');
+                btn.className = "btn btn-flag";
+                btn.innerHTML = `<span>${country.flag}</span> ${country.name}`;
+                btn.onclick = () => selectCountry(country.name);
+                container.appendChild(btn);
+            });
         }
 
         function selectCountry(country) {
@@ -403,13 +472,98 @@
             document.getElementById('summary-protocol').innerText = selectedProtocolName;
             document.getElementById('summary-country').innerText = selectedCountryName;
             
+            // Берем первый доступный ключ из пула и отдаем юзеру (удаляя его из базы)
+            const keyDisplay = document.getElementById('user-vpn-key');
+            if (vpnKeys.length > 0) {
+                const issuedKey = vpnKeys.shift(); // Забираем первый ключ
+                keyDisplay.innerText = issuedKey;
+                localStorage.setItem('nv_keys', JSON.stringify(vpnKeys)); // Сохраняем уменьшенный пул
+            } else {
+                keyDisplay.innerText = "Ключи временно закончились. Администратор скоро добавит новые!";
+            }
+            
             orderSuccessView.classList.remove('hidden');
         }
 
         function openAdminPanel() {
             hideAllViews();
+            renderAdminPanel();
             adminView.classList.remove('hidden');
             profileMenu.classList.remove('show');
+        }
+
+        // Рендер списков внутри админки
+        function renderAdminPanel() {
+            // Список стран
+            const countriesList = document.getElementById('admin-countries-list');
+            countriesList.innerHTML = "";
+            countries.forEach((country, index) => {
+                const li = document.createElement('li');
+                li.innerHTML = `
+                    <span>${country.flag} ${country.name}</span>
+                    <button class="btn btn-danger" onclick="deleteCountry(${index})">Удалить</button>
+                `;
+                countriesList.appendChild(li);
+            });
+
+            // Список ключей
+            const keysList = document.getElementById('admin-keys-list');
+            keysList.innerHTML = "";
+            vpnKeys.forEach((key, index) => {
+                const li = document.createElement('li');
+                // Обрезаем длинный ключ для красоты в админке
+                const shortKey = key.length > 30 ? key.substring(0, 30) + "..." : key;
+                li.innerHTML = `
+                    <span style="font-family: monospace; font-size:0.8rem; color:#10b981;">${shortKey}</span>
+                    <button class="btn btn-danger" onclick="deleteKey(${index})">Удалить</button>
+                `;
+                keysList.appendChild(li);
+            });
+        }
+
+        // Функции управления СТРАНАМИ
+        function addCountry() {
+            const nameInput = document.getElementById('new-country-name');
+            const flagInput = document.getElementById('new-country-flag');
+            
+            if (!nameInput.value.trim()) return alert("Введите название страны");
+            
+            const newCountry = {
+                id: Date.now(),
+                name: nameInput.value.trim(),
+                flag: flagInput.value.trim() || "🌐"
+            };
+
+            countries.push(newCountry);
+            localStorage.setItem('nv_countries', JSON.stringify(countries));
+            
+            nameInput.value = "";
+            flagInput.value = "";
+            renderAdminPanel();
+        }
+
+        function deleteCountry(index) {
+            countries.splice(index, 1);
+            localStorage.setItem('nv_countries', JSON.stringify(countries));
+            renderAdminPanel();
+        }
+
+        // Функции управления КЛЮЧАМИ
+        function addVpnKey() {
+            const keyInput = document.getElementById('new-vpn-key');
+            if (!keyInput.value.trim()) return alert("Вставьте текст ключа");
+
+            vpnKeys.push(keyInput.value.trim());
+            localStorage.setItem('nv_keys', JSON.stringify(vpnKeys));
+            
+            keyInput.value = "";
+            renderAdminPanel();
+        }
+
+        function deleteKey(index) {
+            vpnKeys.splice(index, 1);
+            localStorage.setItem('nv_keys', JSON.stringify(vpnKeys));
+            renderAdminPanel();
         }
 
         function goBackToHome() {
@@ -445,14 +599,12 @@
             }
         }
 
-        // Обработка успешного входа через Telegram
         function onTelegramAuth(user) {
             isLoggedIn = true;
             
             userStatus.classList.remove('hidden');
             userStatus.innerText = `👋 Привет, ${user.first_name}!`;
 
-            // Отрисовываем аватарку
             if (user.photo_url) {
                 avatarBtn.innerHTML = `<img src="${user.photo_url}" alt="Avatar"><div class="admin-badge" id="admin-crown">👑</div>`;
             } else {
@@ -461,7 +613,6 @@
 
             const currentCrown = document.getElementById('admin-crown');
 
-            // Проверяем, совпадает ли ID пользователя с твоим ID
             if (ADMIN_IDS.includes(user.id)) {
                 isAdmin = true;
                 currentCrown.style.display = 'block';
